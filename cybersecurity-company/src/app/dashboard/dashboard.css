@@ -1,0 +1,17 @@
+.dashboard-container {
+  height: 100vh;
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+mat-card {
+  background-color: rgba(66, 66, 66, 0.8) !important;
+  color: white;
+}

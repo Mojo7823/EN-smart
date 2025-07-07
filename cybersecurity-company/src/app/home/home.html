@@ -1,0 +1,129 @@
+<mat-toolbar color="primary">
+  <span>CyberGuard</span>
+  <span class="spacer"></span>
+  <a mat-button href="#home">Home</a>
+  <a mat-button href="#services">Services</a>
+  <a mat-button href="#pricing">Pricing</a>
+  <a mat-button href="#location">Location</a>
+  <a mat-button href="#contact">Contact</a>
+  <a mat-button routerLink="/dashboard">Go to Dashboard</a>
+</mat-toolbar>
+
+<main>
+  <section id="home" class="hero">
+    <div class="container">
+      <h1>Advanced Cybersecurity Testing</h1>
+      <p>Protect your digital assets with our cutting-edge security solutions.</p>
+      <a mat-raised-button color="accent" href="#contact">Get a Free Consultation</a>
+    </div>
+  </section>
+
+  <section id="services" class="services">
+    <div class="container">
+      <h2>Our Services</h2>
+      <div class="service-cards">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Penetration Testing</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Simulate real-world attacks to identify vulnerabilities in your systems.</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Vulnerability Assessment</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Scan your network and applications for known security weaknesses.</p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Security Audits</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Ensure compliance with industry standards and best practices.</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>Our Pricing</h2>
+      <div class="pricing-cards">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Basic</mat-card-title>
+            <mat-card-subtitle>$499</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <ul>
+              <li>Vulnerability Scan</li>
+              <li>Basic Report</li>
+              <li>Email Support</li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Standard</mat-card-title>
+            <mat-card-subtitle>$999</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <ul>
+              <li>Penetration Test</li>
+              <li>Detailed Report</li>
+              <li>Phone Support</li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Premium</mat-card-title>
+            <mat-card-subtitle>$1999</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <ul>
+              <li>Full Security Audit</li>
+              <li>Comprehensive Report</li>
+              <li>24/7 Support</li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </section>
+
+  <section id="location" class="location">
+    <div class="container">
+      <h2>Our Location</h2>
+      <p>123 Cyber Street, Tech City, 12345</p>
+      <div class="map-container">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.019584854235!2d-122.4194154846813!3d37.77492957975817!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085808c1c0e8e6f%3A0x1d2c8f8a2b2b2b2b!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1626456123456!5m2!1sen!2sus"
+          width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="container">
+      <h2>Contact Us</h2>
+      <form>
+        <input type="text" placeholder="Name">
+        <input type="email" placeholder="Email">
+        <textarea placeholder="Message"></textarea>
+        <button mat-raised-button color="primary" type="submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2025 CyberGuard. All Rights Reserved.</p>
+  </div>
+</footer>

@@ -1,0 +1,78 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.hero {
+  background-color: #f5f5f5;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.services {
+  background-color: #e3f2fd;
+  padding: 4rem 0;
+}
+
+.pricing {
+  background-color: #e8f5e9;
+  padding: 4rem 0;
+}
+
+.location {
+  background-color: #f3e5f5;
+  padding: 4rem 0;
+}
+
+.contact {
+  background-color: #e0f2f1;
+  padding: 4rem 0;
+}
+
+.service-cards, .pricing-cards {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+mat-card {
+  flex: 1;
+  max-width: 300px;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-container {
+  margin-top: 2rem;
+}
+
+.contact form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 2rem auto 0;
+}
+
+.footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
