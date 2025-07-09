@@ -232,27 +232,97 @@
 /* Chat Input */
 .chat-input {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-end; /* Align items to the bottom */
   gap: 12px;
   padding: 16px;
   background: #fafafa;
   border-top: 1px solid #e0e0e0;
   border-radius: 0 0 12px 12px;
+  position: relative; /* For positioning the selected file chip */
 }
 
 .message-field {
   flex: 1;
 }
 
+.attachment-button {
+  margin-bottom: 4px; /* Align with FAB send button */
+}
+
 .send-button {
   width: 56px;
   height: 56px;
-  margin-bottom: 4px;
+  margin-bottom: 4px; /* Align with text area bottom */
 }
 
 .send-button[disabled] {
   opacity: 0.5;
 }
+
+/* Selected file chip styles (below input area) */
+.selected-file-chip {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px; /* Slightly smaller padding */
+  background-color: #e8eaf6; /* Indigo lighten-5 */
+  color: #3f51b5; /* Indigo */
+  border: 1px solid #c5cae9; /* Indigo lighten-4 */
+  border-radius: 16px;
+  margin-top: -8px; /* Pull it up slightly if chat-input has padding-bottom */
+  margin-bottom: 8px; /* Space before next element if any */
+  font-size: 0.8em;
+  width: fit-content; /* Only as wide as content */
+  max-width: 90%; /* Prevent overflow */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.selected-file-chip mat-icon {
+  margin-right: 6px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.selected-file-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-file-chip button mat-icon {
+  font-size: 18px; /* Slightly larger for clarity */
+  width: 18px;
+  height: 18px;
+}
+
+
+/* Styling for file attachment chip within a message */
+.file-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+  border: 1px solid #ccc;
+  max-width: 100%;
+}
+
+.file-attachment-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+.file-attachment-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* Animations */
 @keyframes fadeIn {
@@ -297,10 +367,22 @@
   
   .chat-input {
     padding: 12px;
+    flex-wrap: wrap; /* Allow wrapping for selected file chip */
+  }
+
+  .message-field {
+    min-width: calc(100% - 120px); /* Adjust based on button sizes */
   }
   
   .send-button {
     width: 48px;
     height: 48px;
+  }
+
+  .selected-file-chip {
+    width: 100%; /* Full width on small screens */
+    margin-top: 8px; /* Add space when it wraps */
+    order: 3; /* Place it last in flex order */
+    justify-content: center;
   }
 }
