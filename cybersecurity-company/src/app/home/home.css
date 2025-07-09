@@ -57,6 +57,7 @@ mat-toolbar a:hover {
   margin-bottom: 24px;
   text-shadow: none;
   animation: slideInFromTop 1s ease-out;
+  animation-fill-mode: forwards; /* Keep the state of the last keyframe */
 }
 
 @keyframes slideInFromTop {
