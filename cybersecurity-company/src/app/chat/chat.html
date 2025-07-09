@@ -37,7 +37,7 @@
         <p class="empty-hint">Ask questions about robot security, cybersecurity assessments, or general robotics topics.</p>
       </div>
 
-      <div *ngFor="let message of chatSession?.messages" class="message" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
+      <div *ngFor="let message of chatSession?.messages; let i = index" class="message" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
         <div class="message-content">
           <div class="message-avatar">
             <mat-icon *ngIf="message.role === 'user'">person</mat-icon>
@@ -47,6 +47,14 @@
             <!-- Render message content as Markdown -->
             <div class="message-text" [innerHTML]="message.content | markdown"></div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+            <div class="message-actions">
+              <button mat-icon-button (click)="deleteMessage(i)" matTooltip="Delete message">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button mat-icon-button *ngIf="message.role === 'assistant'" (click)="regenerateAssistant()" matTooltip="Regenerate response">
+                <mat-icon>autorenew</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -112,9 +112,49 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   clearChat() {
-    this.llmSettingsService.clearCurrentChatSession();
-    this.chatSession = this.llmSettingsService.createNewChatSession();
-    this.errorMessage = '';
+    if (confirm('Are you sure you want to clear all chat messages?')) {
+      this.llmSettingsService.clearCurrentChatSession();
+      this.chatSession = this.llmSettingsService.createNewChatSession();
+      this.errorMessage = '';
+    }
+  }
+
+  deleteMessage(index: number) {
+    if (!this.chatSession) {
+      return;
+    }
+    this.chatSession.messages.splice(index, 1);
+    this.llmSettingsService.saveCurrentChatSession(this.chatSession);
+  }
+
+  async regenerateAssistant() {
+    if (!this.chatSession || this.isLoading) {
+      return;
+    }
+
+    // Remove last assistant message if it is indeed the last message
+    if (
+      this.chatSession.messages.length &&
+      this.chatSession.messages[this.chatSession.messages.length - 1].role === 'assistant'
+    ) {
+      this.chatSession.messages.pop();
+    }
+
+    this.llmSettingsService.saveCurrentChatSession(this.chatSession);
+
+    try {
+      this.isLoading = true;
+      await this.llmSettingsService.regenerateAssistant();
+      // Refresh session to include new assistant response
+      this.chatSession = this.llmSettingsService.getCurrentChatSession();
+      setTimeout(() => this.scrollToBottom(), 100);
+    } catch (error) {
+      console.error('Error regenerating response:', error);
+      this.errorMessage =
+        error instanceof Error ? error.message : 'An error occurred while regenerating the response';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   private scrollToBottom() {

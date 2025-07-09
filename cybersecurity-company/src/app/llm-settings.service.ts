@@ -238,4 +238,107 @@ export class LLMSettingsService {
       throw error;
     }
   }
+
+  /**
+   * Regenerate the last assistant response based on the most recent user message.
+   * It removes the last assistant message (if present) and calls the LLM again
+   * without adding an additional user message, effectively producing a new answer.
+   */
+  async regenerateAssistant(): Promise<string> {
+    const config = this.getLLMConfig();
+
+    if (!this.isLLMConfigured()) {
+      throw new Error('LLM is not properly configured. Please check your settings.');
+    }
+
+    let session = this.getCurrentChatSession();
+    if (!session || session.messages.length === 0) {
+      throw new Error('No chat history to regenerate.');
+    }
+
+    // Remove last assistant message if present
+    const lastMsg = session.messages[session.messages.length - 1];
+    if (lastMsg.role === 'assistant') {
+      session.messages.pop();
+    }
+
+    this.saveCurrentChatSession(session);
+
+    // Build payload
+    const messages = session.messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    if (messages.length === 0) {
+      throw new Error('No user message to regenerate from.');
+    }
+
+    // Add system prompt if this is the first exchange
+    if (messages.length === 1) {
+      messages.unshift({
+        role: 'system',
+        content:
+          'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
+      });
+    }
+
+    try {
+      const requestBody = {
+        model: config.model,
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7
+      };
+
+      const response = await fetch(`${config.apiHost}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${config.apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          /* ignore */
+        }
+        console.error(`LLM API Error (regenerate): ${response.status} - ${response.statusText}. Body: ${errorText}`);
+        throw new Error(
+          `API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`
+        );
+      }
+
+      const data = await response.json();
+      if (
+        !data ||
+        !data.choices ||
+        !Array.isArray(data.choices) ||
+        data.choices.length === 0 ||
+        !data.choices[0].message ||
+        typeof data.choices[0].message.content !== 'string'
+      ) {
+        console.error('Invalid response format from LLM API (regenerate).', data);
+        throw new Error('Invalid response format from LLM API.');
+      }
+
+      const assistantMessage = data.choices[0].message.content;
+
+      const assistantChatMessage: ChatMessage = {
+        role: 'assistant',
+        content: assistantMessage,
+        timestamp: new Date()
+      };
+      this.addMessageToCurrentSession(assistantChatMessage);
+
+      return assistantMessage;
+    } catch (error) {
+      console.error('Error calling LLM API (regenerate):', error);
+      throw error;
+    }
+  }
 }
