@@ -1,8 +1,12 @@
 import { Routes } from '@angular/router';
 import { Dashboard } from './dashboard/dashboard';
 import { Home } from './home/home';
+import { RobotClassificationComponent } from './robot-classification/robot-classification';
+import { RobotInformationForm } from './robot-information-form/robot-information-form';
 
 export const routes: Routes = [
   { path: '', component: Home },
-  { path: 'dashboard', component: Dashboard }
+  { path: 'dashboard', component: Dashboard },
+  { path: 'robot-classification', component: RobotClassificationComponent },
+  { path: 'robot-information-form', component: RobotInformationForm }
 ];

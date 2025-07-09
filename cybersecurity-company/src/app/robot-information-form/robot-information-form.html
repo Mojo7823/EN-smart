@@ -1,0 +1,61 @@
+<div class="form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>info</mat-icon>
+      <mat-card-title>Robot Information</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form #robotForm="ngForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Robot Name</mat-label>
+          <input matInput 
+                 [(ngModel)]="robotInfo.name" 
+                 name="name" 
+                 placeholder="Enter robot name">
+          <mat-icon matSuffix>smart_toy</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Firmware Version</mat-label>
+          <input matInput 
+                 [(ngModel)]="robotInfo.firmwareVersion" 
+                 name="firmwareVersion" 
+                 placeholder="Enter firmware version">
+          <mat-icon matSuffix>system_update</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Main Basic Function</mat-label>
+          <input matInput 
+                 [(ngModel)]="robotInfo.mainFunction" 
+                 name="mainFunction" 
+                 placeholder="Enter main function">
+          <mat-icon matSuffix>settings</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Robot Description</mat-label>
+          <textarea matInput 
+                    [(ngModel)]="robotInfo.description" 
+                    name="description" 
+                    placeholder="Enter robot description"
+                    rows="4">
+          </textarea>
+          <mat-icon matSuffix>description</mat-icon>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit">
+            <mat-icon>save</mat-icon>
+            Save Information
+          </button>
+          <button mat-stroked-button type="button" (click)="onCancel()">
+            <mat-icon>cancel</mat-icon>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

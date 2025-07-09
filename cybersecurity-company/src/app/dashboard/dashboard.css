@@ -23,11 +23,114 @@ mat-card {
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
 }
 
 mat-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+/* Clickable cards styling */
+.clickable-card {
+  transition: all 0.3s ease;
+}
+
+.clickable-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+/* Classify Robot Card */
+.classify-robot-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
+  color: white;
+  border: none;
+}
+
+.classify-robot-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmerToned 4s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes shimmerToned {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.classify-robot-card:hover {
+  transform: translateY(-12px) scale(1.05);
+  box-shadow: 0 24px 64px rgba(255, 154, 158, 0.4);
+  animation: none;
+}
+
+.classify-robot-card mat-card-header {
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.classify-robot-card mat-card-title {
+  color: white;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.classify-robot-card mat-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.classify-robot-card mat-card-content p {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.classify-robot-card .mat-mdc-card-avatar {
+  background: rgba(255, 255, 255, 0.2);
+  animation: iconPulseToned 2.5s ease-in-out infinite;
+}
+
+@keyframes iconPulseToned {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Add Information Card */
+.add-info-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
+  color: #2c3e50;
+  border: none;
+}
+
+.add-info-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 48px rgba(168, 237, 234, 0.4);
+}
+
+.add-info-card mat-card-header {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.add-info-card mat-card-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.add-info-card .mat-mdc-card-avatar {
+  background: rgba(44, 62, 80, 0.1);
+  color: #2c3e50;
 }
 
 mat-card-header {
@@ -139,9 +242,9 @@ mat-sidenav mat-nav-list a:hover {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: shimmer 3s linear infinite;
-  opacity: 0.5;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: shimmer 5s linear infinite;
+  opacity: 0.3;
 }
 
 @keyframes shimmer {
@@ -179,45 +282,12 @@ mat-sidenav mat-nav-list a:hover {
 
 .start-assessment-card .mat-mdc-card-avatar {
   background: rgba(255, 255, 255, 0.2);
-  animation: iconPulse 2s ease-in-out infinite;
+  animation: iconPulse 3s ease-in-out infinite;
 }
 
 @keyframes iconPulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.start-assessment-button {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24) !important;
-  color: white !important;
-  position: relative;
-  z-index: 1;
-  font-weight: 600;
-  animation: buttonGlow 2s ease-in-out infinite;
-}
-
-@keyframes buttonGlow {
-  0%, 100% { 
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-  }
-  50% { 
-    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.5);
-  }
-}
-
-.start-assessment-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 12px 32px rgba(255, 107, 107, 0.6);
-  animation: none;
-}
-
-.start-assessment-button mat-icon {
-  animation: arrowBounce 1.5s ease-in-out infinite;
-}
-
-@keyframes arrowBounce {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(4px); }
+  50% { transform: scale(1.05); }
 }
 
 /* Improved overall card animations */

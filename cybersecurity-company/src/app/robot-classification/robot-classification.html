@@ -1,0 +1,57 @@
+<div class="classification-container">
+  <mat-card class="classification-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>smart_toy</mat-icon>
+      <mat-card-title>Robot Classification - ISO 13482</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div *ngIf="!isComplete && currentStep" class="question-container">
+        <h3>{{ currentStep.question }}</h3>
+        <div class="options-container">
+          <button 
+            *ngFor="let option of currentStep.options" 
+            mat-raised-button 
+            color="primary" 
+            class="option-button"
+            (click)="selectOption(option)">
+            {{ option.text }}
+          </button>
+        </div>
+      </div>
+      
+      <div *ngIf="isComplete && finalResult" class="result-container">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <h2>Classification Complete!</h2>
+        
+        <div class="result-details">
+          <div class="result-item">
+            <h4>Category:</h4>
+            <p>{{ finalResult.category }}</p>
+          </div>
+          
+          <div class="result-item">
+            <h4>Type:</h4>
+            <p>{{ finalResult.type }}</p>
+          </div>
+          
+          <div class="result-item">
+            <h4>Description:</h4>
+            <p>{{ finalResult.description }}</p>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="returnToDashboard()">
+            <mat-icon>dashboard</mat-icon>
+            Return to Dashboard
+          </button>
+          <button mat-stroked-button (click)="restartClassification()">
+            <mat-icon>refresh</mat-icon>
+            Classify Again
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

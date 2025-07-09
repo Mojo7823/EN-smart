@@ -1,0 +1,45 @@
+<div class="robot-info-container" *ngIf="robotData && (robotData.classification || robotData.information)">
+  <mat-card class="robot-info-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>info</mat-icon>
+      <mat-card-title>Robot Information</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="info-sections">
+        <div class="info-section" *ngIf="robotData.classification">
+          <h3>Classification</h3>
+          <div class="classification-details">
+            <div class="detail-item">
+              <strong>Category:</strong> {{ robotData.classification.category }}
+            </div>
+            <div class="detail-item">
+              <strong>Type:</strong> {{ robotData.classification.type }}
+            </div>
+            <div class="detail-item">
+              <strong>Description:</strong> {{ robotData.classification.description }}
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="robotData.information">
+          <h3>Robot Details</h3>
+          <div class="robot-details">
+            <div class="detail-item" *ngIf="robotData.information.name">
+              <strong>Name:</strong> {{ robotData.information.name }}
+            </div>
+            <div class="detail-item" *ngIf="robotData.information.firmwareVersion">
+              <strong>Firmware Version:</strong> {{ robotData.information.firmwareVersion }}
+            </div>
+            <div class="detail-item" *ngIf="robotData.information.mainFunction">
+              <strong>Main Function:</strong> {{ robotData.information.mainFunction }}
+            </div>
+            <div class="detail-item" *ngIf="robotData.information.description">
+              <strong>Description:</strong> {{ robotData.information.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
