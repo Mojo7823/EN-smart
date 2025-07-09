@@ -44,7 +44,8 @@
             <mat-icon *ngIf="message.role === 'assistant'">smart_toy</mat-icon>
           </div>
           <div class="message-body">
-            <div class="message-text">{{ message.content }}</div>
+            <!-- Render message content as Markdown -->
+            <div class="message-text" [innerHTML]="message.content | markdown"></div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>

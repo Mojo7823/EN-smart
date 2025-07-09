@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
+import { MarkdownPipe } from '../shared/markdown.pipe';
 import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.service';
 
 @Component({
@@ -28,6 +29,7 @@ import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.se
     MatDividerModule,
     MatTooltipModule,
     CdkTextareaAutosize,
+    MarkdownPipe,
   ],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
@@ -76,19 +78,23 @@ export class ChatComponent implements OnInit, OnDestroy {
     const message = this.currentMessage.trim();
     this.currentMessage = '';
 
+    // Begin sending the message but don't await immediately
+    const sendPromise = this.llmSettingsService.sendMessage(message);
+
+    // Immediately refresh chat session so the user's message shows
+    this.chatSession = this.llmSettingsService.getCurrentChatSession();
+    setTimeout(() => this.scrollToBottom(), 100);
+
     try {
-      const response = await this.llmSettingsService.sendMessage(message);
-      
-      // Refresh chat session to show the new messages
+      await sendPromise;
+      // Update chat with assistant response
       this.chatSession = this.llmSettingsService.getCurrentChatSession();
-      
       setTimeout(() => this.scrollToBottom(), 100);
     } catch (error) {
       console.error('Error sending message:', error);
       this.errorMessage = error instanceof Error ? error.message : 'An error occurred while sending the message';
     } finally {
       this.isLoading = false;
-      
       // Focus back on input
       setTimeout(() => {
         if (this.messageInputElement) {
