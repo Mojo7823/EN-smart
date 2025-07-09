@@ -4,14 +4,256 @@
 
 .main-content {
   padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - 64px);
 }
 
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 2rem;
 }
+
 mat-card {
-  background-color: rgba(66, 66, 66, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #333;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+mat-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+mat-card-header {
+  padding-bottom: 16px;
+}
+
+mat-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+mat-card-content p {
+  color: #5a6c7d;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+mat-card-actions {
+  padding-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+mat-card-actions button {
+  background: linear-gradient(45deg, #667eea, #764ba2);
   color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+mat-card-actions button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+mat-card-actions button mat-icon {
+  margin-right: 8px;
+}
+
+.mat-mdc-card-avatar {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sidebar styling */
+mat-sidenav {
+  width: 250px;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+}
+
+mat-sidenav mat-toolbar {
+  background: transparent;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+mat-sidenav mat-nav-list a {
+  color: white;
+  transition: all 0.3s ease;
+  margin: 4px 8px;
+  border-radius: 8px;
+}
+
+mat-sidenav mat-nav-list a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+/* Main toolbar */
+.mat-sidenav-content mat-toolbar {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Enhanced Start Assessment Card */
+.start-assessment-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 16px 48px rgba(102, 126, 234, 0.5);
+    transform: translateY(-4px);
+  }
+}
+
+.start-assessment-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 3s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes shimmer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.start-assessment-card:hover {
+  transform: translateY(-12px) scale(1.05);
+  box-shadow: 0 24px 64px rgba(102, 126, 234, 0.4);
+  animation: none;
+}
+
+.start-assessment-card mat-card-header {
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.start-assessment-card mat-card-title {
+  color: white;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.start-assessment-card mat-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.start-assessment-card mat-card-content p {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.start-assessment-card .mat-mdc-card-avatar {
+  background: rgba(255, 255, 255, 0.2);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.start-assessment-button {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24) !important;
+  color: white !important;
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  animation: buttonGlow 2s ease-in-out infinite;
+}
+
+@keyframes buttonGlow {
+  0%, 100% { 
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  }
+  50% { 
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.5);
+  }
+}
+
+.start-assessment-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(255, 107, 107, 0.6);
+  animation: none;
+}
+
+.start-assessment-button mat-icon {
+  animation: arrowBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+/* Improved overall card animations */
+.dashboard-cards {
+  animation: fadeInStagger 0.8s ease-out;
+}
+
+@keyframes fadeInStagger {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-cards mat-card:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-cards mat-card:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-cards mat-card:nth-child(3) { animation-delay: 0.3s; }
+.dashboard-cards mat-card:nth-child(4) { animation-delay: 0.4s; }
+.dashboard-cards mat-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* Smooth loading animation */
+.dashboard-cards mat-card {
+  animation: cardSlideIn 0.6s ease-out both;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
