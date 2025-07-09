@@ -1,0 +1,74 @@
+.form-container {
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-card {
+  max-width: 600px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-card mat-card-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 16px 16px 0 0;
+  padding: 24px;
+  margin: -16px -16px 16px -16px;
+}
+
+.form-card mat-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+.form-card .mat-mdc-card-avatar {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.form-actions button {
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+}
+
+.form-actions button mat-icon {
+  margin-right: 8px;
+}
+
+@media (max-width: 600px) {
+  .form-container {
+    padding: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
