@@ -48,6 +48,16 @@
       </mat-card-content>
     </mat-card>
     
+    <mat-card class="dashboard-card clickable-card" (click)="navigateToPdfManager()">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>picture_as_pdf</mat-icon>
+        <mat-card-title>PDF Manager</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Upload and manage PDF documents.</p>
+      </mat-card-content>
+    </mat-card>
+    
     <mat-card class="dashboard-card clickable-card" (click)="openSaveSessionDialog()">
       <mat-card-header>
         <mat-icon mat-card-avatar>save</mat-icon>

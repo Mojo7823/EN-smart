@@ -42,6 +42,10 @@ export class Dashboard {
     this.router.navigate(['/robot-classification']);
   }
 
+  navigateToPdfManager(): void {
+    this.router.navigate(['/pdf-manager']);
+  }
+
   openAddInformationDialog(): void {
     // For now, we'll create a simple dialog component inline
     // In a real app, this would be a separate component
