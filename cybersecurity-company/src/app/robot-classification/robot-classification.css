@@ -80,6 +80,30 @@
   background: #1565c0;
 }
 
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.back-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: #1976d2;
+  border: 1px solid #1976d2;
+}
+
+.back-button:hover {
+  transform: translateY(-2px);
+  background: #e3f2fd;
+}
+
+.back-button mat-icon {
+  margin-right: 8px;
+}
+
 .result-container {
   padding: 32px 0;
   text-align: center;

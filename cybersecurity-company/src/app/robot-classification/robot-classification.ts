@@ -27,6 +27,7 @@ export class RobotClassificationComponent {
   currentStep: ClassificationStep | null = null;
   isComplete = false;
   finalResult: RobotClassificationResult | null = null;
+  navigationHistory: string[] = [];
 
   private classificationSteps: Record<string, ClassificationStep> = {
     start: {
@@ -170,6 +171,7 @@ export class RobotClassificationComponent {
     this.currentStep = this.classificationSteps['start'];
     this.isComplete = false;
     this.finalResult = null;
+    this.navigationHistory = [];
   }
 
   selectOption(option: any): void {
@@ -178,6 +180,10 @@ export class RobotClassificationComponent {
       this.isComplete = true;
       this.robotService.setRobotClassification(option.result);
     } else {
+      // Add current step to history before navigating
+      if (this.currentStep) {
+        this.navigationHistory.push(this.currentStep.id);
+      }
       this.currentStep = this.classificationSteps[option.nextStep];
     }
   }
@@ -188,5 +194,18 @@ export class RobotClassificationComponent {
 
   restartClassification(): void {
     this.startClassification();
+  }
+
+  goBack(): void {
+    if (this.navigationHistory.length > 0) {
+      const previousStepId = this.navigationHistory.pop();
+      if (previousStepId) {
+        this.currentStep = this.classificationSteps[previousStepId];
+      }
+    }
+  }
+
+  canGoBack(): boolean {
+    return this.navigationHistory.length > 0;
   }
 }
