@@ -177,32 +177,52 @@ export class LLMSettingsService {
     }
 
     try {
+      const requestBody = {
+        model: config.model,
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7
+      };
+
+      // Log the request body for debugging (excluding sensitive headers)
+      // In a real app, be careful about logging potentially sensitive message content
+      console.debug('LLM API Request:', { host: config.apiHost, model: config.model, messagesCount: messages.length });
+
+
       const response = await fetch(`${config.apiHost}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${config.apiKey}`
         },
-        body: JSON.stringify({
-          model: config.model,
-          messages: messages,
-          max_tokens: 1000,
-          temperature: 0.7
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorText}`);
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          // Ignore if response text cannot be read
+        }
+        console.error(`LLM API Error: ${response.status} - ${response.statusText}. Body: ${errorText}`);
+        throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`);
       }
 
       const data = await response.json();
+
+      if (!data || !data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+        console.error('Invalid response format from LLM API: "choices" array is missing or empty.', data);
+        throw new Error('Invalid response format from LLM API: "choices" array is missing or empty.');
+      }
       
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('Invalid response format from LLM API');
+      const choice = data.choices[0];
+      if (!choice.message || typeof choice.message.content !== 'string') {
+        console.error('Invalid response format from LLM API: "message.content" is missing or not a string.', data);
+        throw new Error('Invalid response format from LLM API: "message.content" is missing or not a string.');
       }
 
-      const assistantMessage = data.choices[0].message.content;
+      const assistantMessage = choice.message.content;
       
       // Add assistant response to session
       const assistantChatMessage: ChatMessage = {
