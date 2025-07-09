@@ -45,7 +45,15 @@
           </div>
           <div class="message-body">
             <!-- Render message content as Markdown -->
-            <div class="message-text" [innerHTML]="message.content | markdown"></div>
+            <div class="message-text">
+              <!-- Display file if present -->
+              <div *ngIf="isUserMessageWithFile(message)" class="file-attachment-chip">
+                <mat-icon>attach_file</mat-icon>
+                <span>{{ getUserMessageFilename(message) }}</span>
+              </div>
+              <!-- Display text part -->
+              <div [innerHTML]="getTextFromMessage(message) | markdown"></div>
+            </div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             <div class="message-actions">
               <button mat-icon-button (click)="deleteMessage(i)" matTooltip="Delete message">
@@ -101,13 +109,29 @@
           cdkAutosizeMaxRows="4">
         </textarea>
       </mat-form-field>
+      <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept=".pdf"/>
+      <button
+        mat-icon-button
+        (click)="fileInput.click()"
+        [disabled]="isLoading"
+        matTooltip="Attach PDF file"
+        class="attachment-button">
+        <mat-icon>attachment</mat-icon>
+      </button>
       <button 
         mat-fab 
         color="primary" 
         (click)="sendMessage()" 
-        [disabled]="!currentMessage.trim() || isLoading"
+        [disabled]="(!currentMessage.trim() && !selectedFile) || isLoading"
         class="send-button">
         <mat-icon>send</mat-icon>
+      </button>
+    </div>
+    <div *ngIf="selectedFile" class="selected-file-chip">
+      <mat-icon>attach_file</mat-icon>
+      <span>{{ selectedFile.name }}</span>
+      <button mat-icon-button (click)="clearSelectedFile()" matTooltip="Remove file">
+        <mat-icon>close</mat-icon>
       </button>
     </div>
   </div>

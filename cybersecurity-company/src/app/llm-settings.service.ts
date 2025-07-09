@@ -8,9 +8,26 @@ export interface LLMConfig {
   model: string;
 }
 
+export interface ChatMessageContentFile {
+  type: 'file';
+  file: {
+    filename: string;
+    // base64 encoded data, prefixed with data:application/pdf;base64,
+    file_data: string;
+  };
+}
+
+export interface ChatMessageContentText {
+  type: 'text';
+  text: string;
+}
+
+export type ChatMessageContent = string | Array<ChatMessageContentFile | ChatMessageContentText>;
+
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: ChatMessageContent; // Can be string or array for multi-modal
   timestamp: Date;
 }
 
@@ -146,31 +163,71 @@ export class LLMSettingsService {
   }
 
   // LLM API interaction
-  async sendMessage(message: string): Promise<string> {
+  async sendMessage(message: string, fileData?: { name: string, content: string }): Promise<string> {
     const config = this.getLLMConfig();
-    
+
     if (!this.isLLMConfigured()) {
       throw new Error('LLM is not properly configured. Please check your settings.');
+    }
+
+    let userMessageContent: ChatMessageContent;
+
+    if (fileData) {
+      userMessageContent = [
+        {
+          type: 'file',
+          file: {
+            filename: fileData.name,
+            file_data: `data:application/pdf;base64,${fileData.content}`
+          }
+        }
+      ];
+      // Add text part if message is not empty
+      if (message) {
+        (userMessageContent as Array<ChatMessageContentFile | ChatMessageContentText>).push({ type: 'text', text: message });
+      }
+    } else {
+      userMessageContent = message;
     }
 
     // Add user message to session
     const userMessage: ChatMessage = {
       role: 'user',
-      content: message,
+      content: userMessageContent, // This will store the rich content
       timestamp: new Date()
     };
     this.addMessageToCurrentSession(userMessage);
 
     // Get current session for context
     const session = this.getCurrentChatSession();
-    const messages = session ? session.messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    })) : [];
+    // Prepare messages for API: if content is an array, use it directly, otherwise wrap string content.
+    const apiMessages = session ? session.messages.map(msg => {
+      let apiContent;
+      if (Array.isArray(msg.content)) { // Already in new format
+        apiContent = msg.content;
+      } else if (typeof msg.content === 'string') { // Old format, just text
+        apiContent = msg.content; // OpenAI API can handle plain string for user/assistant text-only messages
+                                  // For system messages, it must be string.
+                                  // For user/assistant messages with mixed content, it must be an array.
+        if (msg.role === 'user' && fileData && msg === userMessage) { // This is the current message with a file
+             apiContent = userMessageContent;
+        } else if (msg.role !== 'system') { // If it's not a system message and not the current file message, wrap it
+            apiContent = [{ type: 'text', text: msg.content }];
+        }
+      } else { // Should not happen with current logic, but good to handle
+        apiContent = [{ type: 'text', text: 'Error: Malformed message content' }];
+      }
+      return {
+        role: msg.role,
+        content: apiContent
+      };
+    }) : [];
 
-    // Add system message if this is the first message
-    if (messages.length === 1) {
-      messages.unshift({
+
+    // Add system message if this is the first message from the user in the session
+    // The system message content must be a string.
+    if (apiMessages.filter(m => m.role === 'user').length === 1 && apiMessages[0].role !== 'system') {
+      apiMessages.unshift({ // Corrected from 'messages.unshift' to 'apiMessages.unshift'
         role: 'system',
         content: 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
       });
@@ -179,14 +236,14 @@ export class LLMSettingsService {
     try {
       const requestBody = {
         model: config.model,
-        messages: messages,
+        messages: apiMessages, // Corrected from 'messages' to 'apiMessages'
         max_tokens: 1000,
         temperature: 0.7
       };
 
       // Log the request body for debugging (excluding sensitive headers)
       // In a real app, be careful about logging potentially sensitive message content
-      console.debug('LLM API Request:', { host: config.apiHost, model: config.model, messagesCount: messages.length });
+      console.debug('LLM API Request:', { host: config.apiHost, model: config.model, messagesCount: apiMessages.length }); // Corrected
 
 
       const response = await fetch(`${config.apiHost}/chat/completions`, {
@@ -264,19 +321,31 @@ export class LLMSettingsService {
 
     this.saveCurrentChatSession(session);
 
-    // Build payload
-    const messages = session.messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
+    // Build payload - similar transformation as in sendMessage
+    const apiMessages = session.messages.map(msg => {
+        let apiContent;
+        if (Array.isArray(msg.content)) {
+            apiContent = msg.content;
+        } else if (typeof msg.content === 'string') {
+            // System messages must be string, others can be array of content parts
+            apiContent = (msg.role === 'system') ? msg.content : [{ type: 'text', text: msg.content }];
+        } else {
+            apiContent = [{ type: 'text', text: 'Error: Malformed message content for regenerate' }];
+        }
+        return {
+            role: msg.role,
+            content: apiContent
+        };
+    });
 
-    if (messages.length === 0) {
+
+    if (apiMessages.length === 0) {
       throw new Error('No user message to regenerate from.');
     }
 
-    // Add system prompt if this is the first exchange
-    if (messages.length === 1) {
-      messages.unshift({
+    // Add system prompt if this is the first exchange and system prompt isn't already there
+    if (apiMessages.filter(m => m.role === 'user').length > 0 && apiMessages[0].role !== 'system') {
+      apiMessages.unshift({
         role: 'system',
         content:
           'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
@@ -286,7 +355,7 @@ export class LLMSettingsService {
     try {
       const requestBody = {
         model: config.model,
-        messages: messages,
+        messages: apiMessages, // Use transformed messages
         max_tokens: 1000,
         temperature: 0.7
       };
