@@ -115,6 +115,29 @@
   transition: all 0.3s ease;
 }
 
+/* Chat section styling */
+.chat-section {
+  margin: 32px 0;
+}
+
+.chat-section h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-section h2::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: #1976d2;
+  border-radius: 2px;
+}
+
 /* Animation for staggered card appearance */
 .dashboard-cards .dashboard-card {
   animation: fadeInUp 0.6s ease-out both;

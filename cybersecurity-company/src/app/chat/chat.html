@@ -1,0 +1,105 @@
+<div class="chat-container">
+  <!-- Not Configured State -->
+  <div class="not-configured" *ngIf="!isLLMConfigured">
+    <div class="config-message">
+      <mat-icon class="config-icon">settings</mat-icon>
+      <h3>LLM Chat Not Configured</h3>
+      <p>Please configure your LLM settings to enable chat functionality.</p>
+      <button mat-raised-button color="primary" routerLink="/settings">
+        <mat-icon>settings</mat-icon>
+        Configure LLM Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Interface -->
+  <div class="chat-interface" *ngIf="isLLMConfigured">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="header-content">
+        <mat-icon>chat</mat-icon>
+        <h3>AI Assistant</h3>
+        <span class="spacer"></span>
+        <button mat-icon-button (click)="refreshConfig()" matTooltip="Refresh Configuration">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button (click)="clearChat()" matTooltip="Clear Chat">
+          <mat-icon>clear_all</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-messages" #chatMessages>
+      <div *ngIf="chatSession && chatSession.messages.length === 0" class="empty-chat">
+        <mat-icon class="empty-icon">chat_bubble_outline</mat-icon>
+        <p>Start a conversation with your AI assistant!</p>
+        <p class="empty-hint">Ask questions about robot security, cybersecurity assessments, or general robotics topics.</p>
+      </div>
+
+      <div *ngFor="let message of chatSession?.messages" class="message" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
+        <div class="message-content">
+          <div class="message-avatar">
+            <mat-icon *ngIf="message.role === 'user'">person</mat-icon>
+            <mat-icon *ngIf="message.role === 'assistant'">smart_toy</mat-icon>
+          </div>
+          <div class="message-body">
+            <div class="message-text">{{ message.content }}</div>
+            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Message -->
+      <div *ngIf="isLoading" class="message assistant-message">
+        <div class="message-content">
+          <div class="message-avatar">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          <div class="message-body">
+            <div class="message-text">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span class="thinking-text">Thinking...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage }}</span>
+      <button mat-icon-button (click)="errorMessage = ''" matTooltip="Dismiss">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input">
+      <mat-form-field appearance="outline" class="message-field">
+        <mat-label>Type your message...</mat-label>
+        <textarea 
+          matInput 
+          #messageInput
+          [(ngModel)]="currentMessage" 
+          (keypress)="onKeyPress($event)"
+          [disabled]="isLoading"
+          placeholder="Ask about robot security, cybersecurity assessments, or general robotics topics..."
+          rows="2"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="1"
+          cdkAutosizeMaxRows="4">
+        </textarea>
+      </mat-form-field>
+      <button 
+        mat-fab 
+        color="primary" 
+        (click)="sendMessage()" 
+        [disabled]="!currentMessage.trim() || isLoading"
+        class="send-button">
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

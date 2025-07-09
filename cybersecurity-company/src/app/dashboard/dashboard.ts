@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { RobotInformation } from '../robot-information/robot-information';
 import { RobotService } from '../robot';
 import { SaveSessionDialog, LoadSessionDialog } from '../session-manager/session-manager';
+import { ChatComponent } from '../chat/chat';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,6 +28,7 @@ import { SaveSessionDialog, LoadSessionDialog } from '../session-manager/session
     MatInputModule,
     FormsModule,
     RobotInformation,
+    ChatComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',

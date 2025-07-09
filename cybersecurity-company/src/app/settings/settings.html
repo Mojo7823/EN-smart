@@ -1,0 +1,113 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p>Configure your application preferences and LLM settings</p>
+  </div>
+
+  <div class="settings-content">
+    <!-- LLM Settings Card -->
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>smart_toy</mat-icon>
+        <mat-card-title>LLM Configuration</mat-card-title>
+        <mat-card-subtitle>Configure your Large Language Model settings</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="settings-form">
+          <!-- Enable/Disable LLM -->
+          <div class="form-row">
+            <mat-slide-toggle 
+              [(ngModel)]="llmConfig.enabled" 
+              color="primary"
+              class="enable-toggle">
+              Enable LLM Chat
+            </mat-slide-toggle>
+          </div>
+
+          <!-- Provider Selection -->
+          <div class="form-row" *ngIf="llmConfig.enabled">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>LLM Provider</mat-label>
+              <mat-select 
+                [(ngModel)]="llmConfig.provider" 
+                (selectionChange)="onProviderChange()">
+                <mat-option *ngFor="let provider of availableProviders" [value]="provider.value">
+                  {{ provider.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- API Host -->
+          <div class="form-row" *ngIf="llmConfig.enabled">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>API Host</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="llmConfig.apiHost" 
+                placeholder="e.g., https://api.openai.com/v1"
+                type="url">
+              <mat-hint>The base URL for the OpenAI compatible API</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- API Key -->
+          <div class="form-row" *ngIf="llmConfig.enabled">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>API Key</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="llmConfig.apiKey" 
+                placeholder="Enter your API key"
+                type="password">
+              <mat-hint>Your API key will be stored securely in your browser</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Model -->
+          <div class="form-row" *ngIf="llmConfig.enabled">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Model</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="llmConfig.model" 
+                placeholder="e.g., gpt-3.5-turbo">
+              <mat-hint>The model name to use for chat completion</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Configuration Status -->
+          <div class="config-status" *ngIf="llmConfig.enabled">
+            <div class="status-item">
+              <mat-icon [class.configured]="llmConfig.apiKey" [class.not-configured]="!llmConfig.apiKey">
+                {{ llmConfig.apiKey ? 'check_circle' : 'error' }}
+              </mat-icon>
+              <span>API Key {{ llmConfig.apiKey ? 'Configured' : 'Not Configured' }}</span>
+            </div>
+            <div class="status-item">
+              <mat-icon [class.configured]="llmConfig.apiHost" [class.not-configured]="!llmConfig.apiHost">
+                {{ llmConfig.apiHost ? 'check_circle' : 'error' }}
+              </mat-icon>
+              <span>API Host {{ llmConfig.apiHost ? 'Configured' : 'Not Configured' }}</span>
+            </div>
+            <div class="status-item">
+              <mat-icon [class.configured]="llmConfig.model" [class.not-configured]="!llmConfig.model">
+                {{ llmConfig.model ? 'check_circle' : 'error' }}
+              </mat-icon>
+              <span>Model {{ llmConfig.model ? 'Configured' : 'Not Configured' }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button (click)="onReset()">Reset</button>
+        <button mat-raised-button color="primary" (click)="onSave()">
+          <mat-icon>save</mat-icon>
+          Save Settings
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

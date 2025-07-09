@@ -5,6 +5,7 @@ import { RobotClassificationComponent } from './robot-classification/robot-class
 import { RobotInformationForm } from './robot-information-form/robot-information-form';
 import { SharedLayout } from './shared-layout/shared-layout';
 import { PdfManagerComponent } from './pdf-manager/pdf-manager';
+import { SettingsComponent } from './settings/settings';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -15,7 +16,8 @@ export const routes: Routes = [
       { path: 'dashboard', component: Dashboard },
       { path: 'robot-classification', component: RobotClassificationComponent },
       { path: 'robot-information-form', component: RobotInformationForm },
-      { path: 'pdf-manager', component: PdfManagerComponent }
+      { path: 'pdf-manager', component: PdfManagerComponent },
+      { path: 'settings', component: SettingsComponent }
     ]
   }
 ];
