@@ -18,9 +18,6 @@ import { RobotService } from '../robot';
   selector: 'app-dashboard',
   imports: [
     CommonModule,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatListModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
