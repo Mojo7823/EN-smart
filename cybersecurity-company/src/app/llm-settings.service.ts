@@ -162,6 +162,27 @@ export class LLMSettingsService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
+  /**
+   * Transform rich (array-based) message content into the plain-text string
+   * format currently accepted by the OpenAI / Azure OpenAI chat-completion
+   * endpoints.  
+   *  • “text” parts are concatenated with new-lines.  
+   *  • “file” parts are replaced with an easy-to-read placeholder so the
+   *    assistant still gets some context without sending raw file bytes.
+   */
+  private flattenContent(content: ChatMessageContent): string {
+    if (Array.isArray(content)) {
+      return content
+        .map(part =>
+          part.type === 'text'
+            ? part.text
+            : `[File: ${(part as ChatMessageContentFile).file.filename}]`
+        )
+        .join('\n');
+    }
+    return content as string;
+  }
+
   // LLM API interaction
   async sendMessage(message: string, fileData?: { name: string, content: string }): Promise<string> {
     const config = this.getLLMConfig();
@@ -234,9 +255,14 @@ export class LLMSettingsService {
     }
 
     try {
+      const messagesForAPI = apiMessages.map(m => ({
+        role: m.role,
+        content: Array.isArray(m.content) ? this.flattenContent(m.content) : m.content
+      }));
+
       const requestBody = {
         model: config.model,
-        messages: apiMessages, // Corrected from 'messages' to 'apiMessages'
+        messages: messagesForAPI,
         max_tokens: 1000,
         temperature: 0.7
       };
@@ -353,9 +379,14 @@ export class LLMSettingsService {
     }
 
     try {
+      const messagesForAPI = apiMessages.map(m => ({
+        role: m.role,
+        content: Array.isArray(m.content) ? this.flattenContent(m.content) : m.content
+      }));
+
       const requestBody = {
         model: config.model,
-        messages: apiMessages, // Use transformed messages
+        messages: messagesForAPI,
         max_tokens: 1000,
         temperature: 0.7
       };
