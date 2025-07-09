@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { RobotInformation } from '../robot-information/robot-information';
 import { RobotService } from '../robot';
+import { SaveSessionDialog, LoadSessionDialog } from '../session-manager/session-manager';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,6 +42,10 @@ export class Dashboard {
     this.router.navigate(['/robot-classification']);
   }
 
+  navigateToPdfManager(): void {
+    this.router.navigate(['/pdf-manager']);
+  }
+
   openAddInformationDialog(): void {
     // For now, we'll create a simple dialog component inline
     // In a real app, this would be a separate component
@@ -59,6 +64,38 @@ export class Dashboard {
   // Refresh robot data when returning from classification
   ngOnInit() {
     // This will trigger update of robot information display
+  }
+
+  openSaveSessionDialog(): void {
+    const dialogRef = this.dialog.open(SaveSessionDialog, {
+      width: '500px',
+      data: {}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Session saved successfully - could show a success message here
+        console.log('Session saved successfully');
+      }
+    });
+  }
+
+  openLoadSessionDialog(): void {
+    const dialogRef = this.dialog.open(LoadSessionDialog, {
+      width: '500px',
+      data: {}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Session loaded successfully - refresh the page or components
+        console.log('Session loaded successfully');
+        // Trigger a refresh by navigating to the same route
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/dashboard']);
+        });
+      }
+    });
   }
 }
 

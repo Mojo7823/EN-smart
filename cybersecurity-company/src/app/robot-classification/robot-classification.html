@@ -18,6 +18,12 @@
             {{ option.text }}
           </button>
         </div>
+        <div class="navigation-buttons" *ngIf="canGoBack()">
+          <button mat-stroked-button (click)="goBack()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+          </button>
+        </div>
       </div>
       
       <div *ngIf="isComplete && finalResult" class="result-container">
