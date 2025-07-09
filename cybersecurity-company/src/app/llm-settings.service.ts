@@ -233,7 +233,7 @@ export class LLMSettingsService {
         if (msg.role === 'user' && fileData && msg === userMessage) { // This is the current message with a file
              apiContent = userMessageContent;
         } else if (msg.role !== 'system') { // If it's not a system message and not the current file message, wrap it
-            apiContent = [{ type: 'text', text: msg.content }];
+            apiContent = [{ type: 'text', text: msg.content } as ChatMessageContentText];
         }
       } else { // Should not happen with current logic, but good to handle
         apiContent = [{ type: 'text', text: 'Error: Malformed message content' }];
@@ -257,7 +257,7 @@ export class LLMSettingsService {
     try {
       const messagesForAPI = apiMessages.map(m => ({
         role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content) : m.content
+        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
       }));
 
       const requestBody = {
@@ -354,7 +354,7 @@ export class LLMSettingsService {
             apiContent = msg.content;
         } else if (typeof msg.content === 'string') {
             // System messages must be string, others can be array of content parts
-            apiContent = (msg.role === 'system') ? msg.content : [{ type: 'text', text: msg.content }];
+            apiContent = (msg.role === 'system') ? msg.content : [{ type: 'text', text: msg.content } as ChatMessageContentText];
         } else {
             apiContent = [{ type: 'text', text: 'Error: Malformed message content for regenerate' }];
         }
@@ -381,7 +381,7 @@ export class LLMSettingsService {
     try {
       const messagesForAPI = apiMessages.map(m => ({
         role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content) : m.content
+        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
       }));
 
       const requestBody = {
