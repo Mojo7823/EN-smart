@@ -4,6 +4,7 @@ export interface KnowledgeBaseFile {
   id: string;
   name: string;
   content: string; // base64 encoded
+  extractedText?: string; // extracted text content for LLM
   size: number;
   uploadDate: Date;
   lastUsed: Date;
@@ -101,7 +102,57 @@ export class KnowledgeBaseService {
     this.updateStats();
     this.saveToStorage();
 
+    // Extract text asynchronously after the file is stored
+    if (file.type === 'application/pdf') {
+      this.extractTextFromPDFAsync(knowledgeFile.id, content);
+    }
+
     return knowledgeFile;
+  }
+
+  private async extractTextFromPDFAsync(fileId: string, base64Content: string): Promise<void> {
+    // Only extract text in browser environment
+    if (!this.isBrowser()) {
+      return;
+    }
+
+    try {
+      const extractedText = await this.extractTextFromPDF(base64Content);
+      
+      // Update the file with extracted text
+      const file = this.files.get(fileId);
+      if (file) {
+        file.extractedText = extractedText;
+        this.saveToStorage();
+      }
+    } catch (error) {
+      console.warn('Failed to extract text from PDF:', error);
+    }
+  }
+
+  async getExtractedTextForFile(fileId: string): Promise<string | undefined> {
+    const file = this.files.get(fileId);
+    if (!file) return undefined;
+
+    // If we already have extracted text, return it
+    if (file.extractedText) {
+      return file.extractedText;
+    }
+
+    // If it's a PDF and we don't have extracted text yet, try to extract it now
+    if (file.name.toLowerCase().endsWith('.pdf') && this.isBrowser()) {
+      try {
+        const extractedText = await this.extractTextFromPDF(file.content);
+        file.extractedText = extractedText;
+        this.saveToStorage();
+        return extractedText;
+      } catch (error) {
+        console.warn('Failed to extract text from PDF:', error);
+        return undefined;
+      }
+    }
+
+    return undefined;
   }
 
   private readFileAsBase64(file: File): Promise<string> {
@@ -200,5 +251,44 @@ export class KnowledgeBaseService {
   // Get file by name
   getFileByName(name: string): KnowledgeBaseFile | undefined {
     return Array.from(this.files.values()).find(file => file.name === name);
+  }
+
+  private async extractTextFromPDF(base64Content: string): Promise<string> {
+    try {
+      // Dynamically import PDF.js only in browser environment
+      const pdfjsLib = await import('pdfjs-dist');
+      
+      // Configure PDF.js worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+
+      // Convert base64 to Uint8Array
+      const binaryString = atob(base64Content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Load the PDF document
+      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+      let extractedText = '';
+
+      // Extract text from each page
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine text items with proper spacing
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        
+        extractedText += `Page ${pageNum}:\n${pageText}\n\n`;
+      }
+
+      return extractedText.trim();
+    } catch (error) {
+      console.error('Error extracting text from PDF:', error);
+      throw error;
+    }
   }
 }
