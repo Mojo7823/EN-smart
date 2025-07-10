@@ -38,11 +38,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('chatMessages', { static: false }) chatMessagesElement!: ElementRef;
   @ViewChild('messageInput', { static: false }) messageInputElement!: ElementRef;
 
-  currentMessage: string = '';
-  isLoading: boolean = false;
+  currentMessage = '';
+  isLoading = false;
   chatSession: ChatSession | null = null;
-  isLLMConfigured: boolean = false;
-  errorMessage: string = '';
+  isLLMConfigured = false;
+  errorMessage = '';
   selectedFile: File | null = null;
 
   constructor(private llmSettingsService: LLMSettingsService) {}
@@ -155,7 +155,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   onFileSelected(event: Event): void {
     const element = event.currentTarget as HTMLInputElement;
-    let fileList: FileList | null = element.files;
+    const fileList: FileList | null = element.files;
     if (fileList && fileList.length > 0) {
       const file = fileList[0];
       // Basic validation (e.g., file type, size)
@@ -264,7 +264,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   getUserMessageFilename(message: ChatMessage): string {
     if (this.isUserMessageWithFile(message)) {
-      const filePart = (message.content as Array<any>).find(part => part.type === 'file');
+      const filePart = (message.content as any[]).find(part => (part as any).type === 'file');
       return filePart?.file?.filename || 'Attached File';
     }
     return '';
@@ -272,7 +272,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   getTextFromMessage(message: ChatMessage): string {
     if (Array.isArray(message.content)) {
-      const textPart = message.content.find(part => part.type === 'text');
+      const textPart = (message.content as any[]).find(part => (part as any).type === 'text');
       return textPart ? (textPart as any).text : '';
     }
     return message.content as string; // Fallback for simple string content (e.g., assistant messages)
