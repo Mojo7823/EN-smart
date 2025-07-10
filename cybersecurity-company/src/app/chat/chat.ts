@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { MarkdownPipe } from '../shared/markdown.pipe';
 import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.service';
+import { KnowledgeBaseService, KnowledgeBaseFile } from '../knowledge-base.service';
 
 @Component({
   selector: 'app-chat',
@@ -44,13 +45,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   isLLMConfigured: boolean = false;
   errorMessage: string = '';
   selectedFile: File | null = null;
+  knowledgeBaseFiles: KnowledgeBaseFile[] = [];
 
-  constructor(private llmSettingsService: LLMSettingsService) {}
+  constructor(
+    private llmSettingsService: LLMSettingsService,
+    private knowledgeBaseService: KnowledgeBaseService
+  ) {}
 
   ngOnInit() {
     this.isLLMConfigured = this.llmSettingsService.isLLMConfigured();
     if (this.isLLMConfigured) {
       this.loadChatSession();
+      this.loadKnowledgeBaseFiles();
     }
   }
 
@@ -69,6 +75,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     setTimeout(() => this.scrollToBottom(), 100);
   }
 
+  private loadKnowledgeBaseFiles() {
+    this.knowledgeBaseFiles = this.knowledgeBaseService.getAllFiles();
+  }
+
   async sendMessage() {
     if ((!this.currentMessage.trim() && !this.selectedFile) || this.isLoading || !this.isLLMConfigured) {
       return;
@@ -83,10 +93,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // Convert file to base64 if present
     let fileData: { name: string, content: string } | undefined;
+    let knowledgeBaseFile: any = null;
     if (file) {
       try {
         const base64Content = await this.readFileAsBase64(file);
         fileData = { name: file.name, content: base64Content };
+        
+        // Add file to knowledge base
+        knowledgeBaseFile = this.knowledgeBaseService.addFile(file, base64Content);
       } catch (error) {
         console.error('Error reading file:', error);
         this.errorMessage = 'Error reading file. Please try again.';
@@ -98,6 +112,14 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Begin sending the message but don't await immediately
     const sendPromise = this.llmSettingsService.sendMessage(message, fileData);
 
+    // Link message to knowledge base file if present
+    if (knowledgeBaseFile) {
+      const userMessage = this.chatSession?.messages[this.chatSession.messages.length - 1];
+      if (userMessage) {
+        this.knowledgeBaseService.addMessageReference(knowledgeBaseFile.id, userMessage.timestamp.getTime().toString());
+      }
+    }
+
     // Immediately refresh chat session so the user's message shows
     // (The user message part of sendMessage in service already handles this)
     this.chatSession = this.llmSettingsService.getCurrentChatSession();
@@ -108,6 +130,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       await sendPromise;
       // Update chat with assistant response
       this.chatSession = this.llmSettingsService.getCurrentChatSession();
+      this.loadKnowledgeBaseFiles(); // Refresh knowledge base files
       setTimeout(() => this.scrollToBottom(), 100);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -260,5 +283,18 @@ export class ChatComponent implements OnInit, OnDestroy {
       return textPart ? (textPart as any).text : '';
     }
     return message.content as string; // Fallback for simple string content (e.g., assistant messages)
+  }
+
+  navigateToKnowledgeBase(): void {
+    // This will be handled by the router
+    window.location.href = '/knowledge-base';
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }

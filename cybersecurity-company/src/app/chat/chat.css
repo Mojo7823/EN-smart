@@ -386,3 +386,53 @@
     justify-content: center;
   }
 }
+
+/* Knowledge Base Section Styles */
+.knowledge-base-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.knowledge-base-section h4 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.knowledge-base-files {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.knowledge-base-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.knowledge-base-file mat-icon {
+  color: #d32f2f;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.knowledge-base-file span {
+  flex: 1;
+  color: #333;
+}
+
+.knowledge-base-file small {
+  color: #666;
+  font-size: 0.8rem;
+}

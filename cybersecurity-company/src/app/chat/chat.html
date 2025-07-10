@@ -23,6 +23,9 @@
         <button mat-icon-button (click)="refreshConfig()" matTooltip="Refresh Configuration">
           <mat-icon>refresh</mat-icon>
         </button>
+        <button mat-icon-button (click)="navigateToKnowledgeBase()" matTooltip="Manage Knowledge Base">
+          <mat-icon>library_books</mat-icon>
+        </button>
         <button mat-icon-button (click)="clearChat()" matTooltip="Clear Chat">
           <mat-icon>clear_all</mat-icon>
         </button>
@@ -35,6 +38,18 @@
         <mat-icon class="empty-icon">chat_bubble_outline</mat-icon>
         <p>Start a conversation with your AI assistant!</p>
         <p class="empty-hint">Ask questions about robot security, cybersecurity assessments, or general robotics topics.</p>
+        
+        <!-- Knowledge Base Files Section -->
+        <div class="knowledge-base-section" *ngIf="knowledgeBaseFiles.length > 0">
+          <h4>Available Knowledge Base Files</h4>
+          <div class="knowledge-base-files">
+            <div *ngFor="let file of knowledgeBaseFiles" class="knowledge-base-file">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span>{{ file.name }}</span>
+              <small>{{ formatFileSize(file.size) }}</small>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div *ngFor="let message of chatSession?.messages; let i = index" class="message" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
