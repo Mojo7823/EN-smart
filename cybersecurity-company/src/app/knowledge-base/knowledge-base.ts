@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { KnowledgeBaseService, KnowledgeBaseFile } from '../knowledge-base.service';
+import { LLMSettingsService } from '../llm-settings.service';
 
 @Component({
   selector: 'app-knowledge-base',
@@ -286,6 +287,7 @@ export class KnowledgeBaseComponent implements OnInit, OnDestroy {
 
   constructor(
     private knowledgeBaseService: KnowledgeBaseService,
+    private llmSettingsService: LLMSettingsService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -388,6 +390,8 @@ export class KnowledgeBaseComponent implements OnInit, OnDestroy {
     if (confirm(`Are you sure you want to delete "${file.name}"? This will also remove it from any chat messages that reference it.`)) {
       const success = this.knowledgeBaseService.deleteFile(file.id);
       if (success) {
+        // Remove messages that reference this file
+        this.llmSettingsService.removeMessagesWithDeletedFiles([file.name]);
         this.loadFiles();
         this.snackBar.open(`Deleted ${file.name}`, 'Close', { duration: 2000 });
       } else {
@@ -398,7 +402,11 @@ export class KnowledgeBaseComponent implements OnInit, OnDestroy {
 
   clearAll(): void {
     if (confirm('Are you sure you want to delete all files from the knowledge base? This action cannot be undone.')) {
+      // Get all file names before clearing
+      const fileNames = this.files.map(file => file.name);
       this.knowledgeBaseService.clearAll();
+      // Remove all messages that reference any of the deleted files
+      this.llmSettingsService.removeMessagesWithDeletedFiles(fileNames);
       this.loadFiles();
       this.snackBar.open('All files deleted from knowledge base', 'Close', { duration: 3000 });
     }
