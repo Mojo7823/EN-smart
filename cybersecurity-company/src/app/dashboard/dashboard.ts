@@ -11,6 +11,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { ViewChild } from '@angular/core';
 import { RobotInformation } from '../robot-information/robot-information';
 import { RobotService } from '../robot';
 import { SaveSessionDialog, LoadSessionDialog } from '../session-manager/session-manager';
@@ -36,6 +37,9 @@ import { KnowledgeBaseComponent } from '../knowledge-base/knowledge-base';
   styleUrl: './dashboard.css',
 })
 export class Dashboard {
+  @ViewChild(ChatComponent) chatComponent!: ChatComponent;
+  @ViewChild(KnowledgeBaseComponent) knowledgeBaseComponent!: KnowledgeBaseComponent;
+
   constructor(
     private router: Router,
     private dialog: MatDialog,

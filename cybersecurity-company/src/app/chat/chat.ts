@@ -68,6 +68,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.loadChatSession();
     }
     this.loadKnowledgeBaseFiles();
+    this.cleanupOrphanedMessages();
   }
 
   ngOnDestroy() {
@@ -330,6 +331,32 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   formatDate(date: Date): string {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Clean up orphaned messages that reference deleted files
+  private cleanupOrphanedMessages(): void {
+    const existingFileNames = this.knowledgeBaseFiles.map(file => file.name);
+    const session = this.llmSettingsService.getCurrentChatSession();
+    
+    if (!session) return;
+
+    const orphanedFileNames: string[] = [];
+    session.messages.forEach(message => {
+      if (message.role === 'user' && Array.isArray(message.content)) {
+        const fileParts = message.content.filter(part => part.type === 'file');
+        fileParts.forEach(filePart => {
+          const filename = (filePart as any).file.filename;
+          if (!existingFileNames.includes(filename) && !orphanedFileNames.includes(filename)) {
+            orphanedFileNames.push(filename);
+          }
+        });
+      }
+    });
+
+    if (orphanedFileNames.length > 0) {
+      this.llmSettingsService.removeMessagesWithDeletedFiles(orphanedFileNames);
+      this.loadChatSession(); // Refresh chat to show updated messages
+    }
   }
 }
 
