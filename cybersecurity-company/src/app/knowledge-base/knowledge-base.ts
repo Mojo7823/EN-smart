@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -279,6 +279,7 @@ import { KnowledgeBaseService, KnowledgeBaseFile } from '../knowledge-base.servi
   `]
 })
 export class KnowledgeBaseComponent implements OnInit, OnDestroy {
+  @ViewChild('fileInput') fileInput!: ElementRef;
   files: KnowledgeBaseFile[] = [];
   stats: any = { totalFiles: 0, totalSize: 0, lastUpdated: new Date() };
   isUploading = false;
@@ -418,7 +419,7 @@ export class KnowledgeBaseComponent implements OnInit, OnDestroy {
 
 // PDF Viewer Dialog Component
 @Component({
-  selector: 'pdf-viewer-dialog',
+  selector: 'pdf-viewer-dialog-kb',
   imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
   template: `
     <h2 mat-dialog-title>
