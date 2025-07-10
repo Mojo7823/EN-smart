@@ -229,6 +229,104 @@
   color: #c62828;
 }
 
+/* Knowledge Base Section */
+.knowledge-base-section {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 16px;
+}
+
+.kb-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.kb-header mat-icon {
+  color: #2e7d32;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.kb-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kb-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #666;
+  background: #e8f5e8;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.kb-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kb-file-chip {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #ffffff !important;
+  border: 1px solid #e0e0e0 !important;
+  padding: 8px 12px !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  max-width: 300px !important;
+}
+
+.kb-file-chip:hover {
+  background: #f5f5f5 !important;
+  border-color: #2196f3 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kb-file-chip mat-icon {
+  color: #f57c00;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.kb-file-chip .file-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.kb-file-chip .file-info {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.kb-file-chip .delete-btn {
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  color: #f44336;
+}
+
+.kb-file-chip .delete-btn:hover {
+  background: #ffebee;
+}
+
 /* Chat Input */
 .chat-input {
   display: flex;

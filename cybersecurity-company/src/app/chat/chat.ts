@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,9 +10,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialogModule, MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MarkdownPipe } from '../shared/markdown.pipe';
 import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.service';
+import { KnowledgeBaseService, KnowledgeBaseFile } from '../knowledge-base.service';
 
 @Component({
   selector: 'app-chat',
@@ -28,6 +33,9 @@ import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.se
     MatProgressSpinnerModule,
     MatDividerModule,
     MatTooltipModule,
+    MatChipsModule,
+    MatDialogModule,
+    MatSnackBarModule,
     CdkTextareaAutosize,
     MarkdownPipe,
   ],
@@ -44,14 +52,22 @@ export class ChatComponent implements OnInit, OnDestroy {
   isLLMConfigured: boolean = false;
   errorMessage: string = '';
   selectedFile: File | null = null;
+  knowledgeBaseFiles: KnowledgeBaseFile[] = [];
+  hasUploadedFiles = false;
 
-  constructor(private llmSettingsService: LLMSettingsService) {}
+  constructor(
+    private llmSettingsService: LLMSettingsService,
+    private knowledgeBaseService: KnowledgeBaseService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit() {
     this.isLLMConfigured = this.llmSettingsService.isLLMConfigured();
     if (this.isLLMConfigured) {
       this.loadChatSession();
     }
+    this.loadKnowledgeBaseFiles();
   }
 
   ngOnDestroy() {
@@ -61,12 +77,25 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUploadedFiles) {
+      event.preventDefault();
+      event.returnValue = 'You have uploaded files that will be deleted when you leave. Are you sure you want to leave?';
+    }
+  }
+
   private loadChatSession() {
     this.chatSession = this.llmSettingsService.getCurrentChatSession();
     if (!this.chatSession) {
       this.chatSession = this.llmSettingsService.createNewChatSession();
     }
     setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  private loadKnowledgeBaseFiles(): void {
+    this.knowledgeBaseFiles = this.knowledgeBaseService.getAllFiles();
+    this.hasUploadedFiles = this.knowledgeBaseFiles.length > 0;
   }
 
   async sendMessage() {
@@ -81,12 +110,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     const file = this.selectedFile;
     this.selectedFile = null; // Clear selected file
 
-    // Convert file to base64 if present
+    // Convert file to base64 if present and add to knowledge base
     let fileData: { name: string, content: string } | undefined;
     if (file) {
       try {
         const base64Content = await this.readFileAsBase64(file);
         fileData = { name: file.name, content: base64Content };
+        
+        // Add file to knowledge base
+        await this.knowledgeBaseService.addFile(file);
+        this.loadKnowledgeBaseFiles();
+        this.snackBar.open(`File "${file.name}" added to knowledge base`, 'Close', { duration: 3000 });
       } catch (error) {
         console.error('Error reading file:', error);
         this.errorMessage = 'Error reading file. Please try again.';
@@ -260,5 +294,108 @@ export class ChatComponent implements OnInit, OnDestroy {
       return textPart ? (textPart as any).text : '';
     }
     return message.content as string; // Fallback for simple string content (e.g., assistant messages)
+  }
+
+  // Knowledge base management methods
+  viewKnowledgeBaseFile(file: KnowledgeBaseFile): void {
+    const dialogRef = this.dialog.open(PdfViewerDialog, {
+      width: '90vw',
+      height: '90vh',
+      data: file
+    });
+  }
+
+  deleteKnowledgeBaseFile(file: KnowledgeBaseFile): void {
+    if (confirm(`Are you sure you want to delete "${file.name}" from the knowledge base? This will also remove it from any chat messages that reference it.`)) {
+      const success = this.knowledgeBaseService.deleteFile(file.id);
+      if (success) {
+        // Remove messages that reference this file
+        this.llmSettingsService.removeMessagesWithDeletedFiles([file.name]);
+        this.loadKnowledgeBaseFiles();
+        this.loadChatSession(); // Refresh chat to show updated messages
+        this.snackBar.open(`Deleted ${file.name} from knowledge base`, 'Close', { duration: 2000 });
+      } else {
+        this.snackBar.open(`Error deleting ${file.name}`, 'Close', { duration: 3000 });
+      }
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  formatDate(date: Date): string {
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+// PDF Viewer Dialog Component for Chat
+@Component({
+  selector: 'pdf-viewer-dialog-chat',
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  template: `
+    <h2 mat-dialog-title>
+      <mat-icon>picture_as_pdf</mat-icon>
+      {{ data.name }}
+    </h2>
+    <mat-dialog-content>
+      <iframe [src]="pdfUrl" width="100%" height="100%" style="border: none;"></iframe>
+    </mat-dialog-content>
+    <mat-dialog-actions>
+      <button mat-button (click)="download()">
+        <mat-icon>download</mat-icon>
+        Download
+      </button>
+      <button mat-button (click)="close()">Close</button>
+    </mat-dialog-actions>
+  `,
+  styles: [`
+    mat-dialog-content {
+      height: calc(90vh - 120px);
+      padding: 0;
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100%;
+    }
+    
+    h2 mat-dialog-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  `]
+})
+export class PdfViewerDialog {
+  pdfUrl: SafeResourceUrl;
+
+  constructor(
+    public dialogRef: MatDialogRef<PdfViewerDialog>,
+    @Inject(MAT_DIALOG_DATA) public data: KnowledgeBaseFile,
+    private sanitizer: DomSanitizer,
+    private knowledgeBaseService: KnowledgeBaseService
+  ) {
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      this.knowledgeBaseService.getFileDataUrl(data)
+    );
+  }
+
+  download(): void {
+    const dataUrl = this.knowledgeBaseService.getFileDataUrl(this.data);
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = this.data.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  close(): void {
+    this.dialogRef.close();
   }
 }
