@@ -578,25 +578,25 @@ export class KnowledgeBaseManagerComponent implements OnInit {
     return this.knowledgeBaseService.getReferencesForDocument(documentId).length > 0;
   }
 
-  viewDocument(document: KnowledgeBaseDocument): void {
+  viewDocument(doc: KnowledgeBaseDocument): void {
     this.dialog.open(DocumentViewerDialog, {
       width: '90vw',
       height: '90vh',
       maxWidth: '1200px',
       maxHeight: '800px',
-      data: document
+      data: doc
     });
   }
 
-  editDocument(document: KnowledgeBaseDocument): void {
+  editDocument(doc: KnowledgeBaseDocument): void {
     const dialogRef = this.dialog.open(DocumentEditDialog, {
       width: '500px',
-      data: { ...document }
+      data: { ...doc }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.knowledgeBaseService.updateDocument(document.id, result);
+        this.knowledgeBaseService.updateDocument(doc.id, result);
         this.loadDocuments();
         this.snackBar.open('Document updated successfully', 'Close', {
           duration: 3000,
@@ -607,9 +607,9 @@ export class KnowledgeBaseManagerComponent implements OnInit {
     });
   }
 
-  downloadDocument(document: KnowledgeBaseDocument): void {
-    if (document.data) {
-      const binaryString = atob(document.data);
+  downloadDocument(doc: KnowledgeBaseDocument): void {
+    if (doc.data) {
+      const binaryString = atob(doc.data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
@@ -619,7 +619,7 @@ export class KnowledgeBaseManagerComponent implements OnInit {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = document.name;
+      a.download = doc.name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -627,10 +627,10 @@ export class KnowledgeBaseManagerComponent implements OnInit {
     }
   }
 
-  deleteDocument(document: KnowledgeBaseDocument): void {
-    const references = this.knowledgeBaseService.getReferencesForDocument(document.id);
+  deleteDocument(doc: KnowledgeBaseDocument): void {
+    const references = this.knowledgeBaseService.getReferencesForDocument(doc.id);
     
-    let confirmMessage = `Are you sure you want to delete "${document.name}"?`;
+    let confirmMessage = `Are you sure you want to delete "${doc.name}"?`;
     if (references.length > 0) {
       confirmMessage += ` This document is referenced in ${references.length} chat message(s). Deleting it will also remove those messages.`;
     }
@@ -661,7 +661,7 @@ export class KnowledgeBaseManagerComponent implements OnInit {
       }
 
       // Delete the document
-      this.knowledgeBaseService.deleteDocument(document.id);
+      this.knowledgeBaseService.deleteDocument(doc.id);
       this.loadDocuments();
       this.updateStats();
       
