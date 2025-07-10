@@ -171,15 +171,28 @@ export class LLMSettingsService {
    *  • “file” parts are replaced with an easy-to-read placeholder so the
    *    assistant still gets some context without sending raw file bytes.
    */
-  private flattenContent(content: ChatMessageContent): string {
+  private async flattenContent(content: ChatMessageContent): Promise<string> {
     if (Array.isArray(content)) {
-      return content
-        .map(part =>
-          part.type === 'text'
-            ? part.text
-            : `[File: ${(part as ChatMessageContentFile).file.filename}]`
-        )
-        .join('\n');
+      const promises = content.map(async part => {
+        if (part.type === 'text') {
+          return part.text;
+        } else {
+          // For file parts, try to get extracted text from knowledge base
+          const filename = (part as ChatMessageContentFile).file.filename;
+          const knowledgeFile = this.knowledgeBaseService.getFileByName(filename);
+          
+          if (knowledgeFile) {
+            const extractedText = await this.knowledgeBaseService.getExtractedTextForFile(knowledgeFile.id);
+            if (extractedText) {
+              return `File: ${filename}\nContent:\n${extractedText}`;
+            }
+          }
+          return `[File: ${filename}]`;
+        }
+      });
+      
+      const resolvedParts = await Promise.all(promises);
+      return resolvedParts.join('\n\n');
     }
     return content as string;
   }
@@ -193,11 +206,15 @@ export class LLMSettingsService {
       return '';
     }
 
-    const contextParts = files.map(file => 
-      `[Knowledge Base File: ${file.name} - Last used: ${file.lastUsed.toLocaleDateString()}]`
-    );
+    const contextParts = files.map(file => {
+      let context = `[Knowledge Base File: ${file.name} - Last used: ${file.lastUsed.toLocaleDateString()}]`;
+      if (file.extractedText) {
+        context += `\nContent Preview:\n${file.extractedText.substring(0, 300)}${file.extractedText.length > 300 ? '...' : ''}`;
+      }
+      return context;
+    });
     
-    return '\n\nAvailable Knowledge Base Files:\n' + contextParts.join('\n');
+    return '\n\nAvailable Knowledge Base Files:\n' + contextParts.join('\n\n');
   }
 
   /**
@@ -301,10 +318,10 @@ export class LLMSettingsService {
     }
 
     try {
-      const messagesForAPI = apiMessages.map(m => ({
+      const messagesForAPI = await Promise.all(apiMessages.map(async m => ({
         role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
-      }));
+        content: Array.isArray(m.content) ? await this.flattenContent(m.content as ChatMessageContent) : m.content
+      })));
 
       const requestBody = {
         model: config.model,
@@ -334,8 +351,21 @@ export class LLMSettingsService {
         } catch (e) {
           // Ignore if response text cannot be read
         }
+        
         console.error(`LLM API Error: ${response.status} - ${response.statusText}. Body: ${errorText}`);
-        throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`);
+        
+        // Provide specific error messages for common issues
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+        } else if (response.status === 402 || errorText.toLowerCase().includes('quota') || errorText.toLowerCase().includes('exceeded')) {
+          throw new Error('API quota has been exceeded. Please check your account limits or try again later.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication failed. Please check your API key configuration.');
+        } else if (response.status === 403) {
+          throw new Error('Access forbidden. Please check your API permissions.');
+        } else {
+          throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`);
+        }
       }
 
       const data = await response.json();
@@ -425,10 +455,10 @@ export class LLMSettingsService {
     }
 
     try {
-      const messagesForAPI = apiMessages.map(m => ({
+      const messagesForAPI = await Promise.all(apiMessages.map(async m => ({
         role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
-      }));
+        content: Array.isArray(m.content) ? await this.flattenContent(m.content as ChatMessageContent) : m.content
+      })));
 
       const requestBody = {
         model: config.model,
@@ -453,10 +483,21 @@ export class LLMSettingsService {
         } catch (e) {
           /* ignore */
         }
+        
         console.error(`LLM API Error (regenerate): ${response.status} - ${response.statusText}. Body: ${errorText}`);
-        throw new Error(
-          `API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`
-        );
+        
+        // Provide specific error messages for common issues
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment before trying again.');
+        } else if (response.status === 402 || errorText.toLowerCase().includes('quota') || errorText.toLowerCase().includes('exceeded')) {
+          throw new Error('API quota has been exceeded. Please check your account limits or try again later.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication failed. Please check your API key configuration.');
+        } else if (response.status === 403) {
+          throw new Error('Access forbidden. Please check your API permissions.');
+        } else {
+          throw new Error(`API request failed with status ${response.status}: ${response.statusText}. Check console for more details.`);
+        }
       }
 
       const data = await response.json();
