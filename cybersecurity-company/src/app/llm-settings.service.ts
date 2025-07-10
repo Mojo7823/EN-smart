@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { KnowledgeBaseService, KnowledgeBaseFile } from './knowledge-base.service';
 
 export interface LLMConfig {
   enabled: boolean;
@@ -46,7 +47,7 @@ export class LLMSettingsService {
   private chatSessionsKey = 'chatSessions';
   private currentChatKey = 'currentChat';
 
-  constructor() {}
+  constructor(private knowledgeBaseService: KnowledgeBaseService) {}
 
   private isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -183,6 +184,50 @@ export class LLMSettingsService {
     return content as string;
   }
 
+  /**
+   * Get context from knowledge base files for the current conversation
+   */
+  private getKnowledgeBaseContext(): string {
+    const files = this.knowledgeBaseService.getFilesForContext();
+    if (files.length === 0) {
+      return '';
+    }
+
+    const contextParts = files.map(file => 
+      `[Knowledge Base File: ${file.name} - Last used: ${file.lastUsed.toLocaleDateString()}]`
+    );
+    
+    return '\n\nAvailable Knowledge Base Files:\n' + contextParts.join('\n');
+  }
+
+  /**
+   * Remove messages that reference deleted knowledge base files
+   */
+  removeMessagesWithDeletedFiles(deletedFileNames: string[]): void {
+    const session = this.getCurrentChatSession();
+    if (!session) return;
+
+    let hasChanges = false;
+    session.messages = session.messages.filter(message => {
+      if (message.role === 'user' && Array.isArray(message.content)) {
+        const fileParts = message.content.filter(part => part.type === 'file');
+        const hasDeletedFile = fileParts.some(filePart => 
+          deletedFileNames.includes((filePart as ChatMessageContentFile).file.filename)
+        );
+        
+        if (hasDeletedFile) {
+          hasChanges = true;
+          return false; // Remove this message
+        }
+      }
+      return true; // Keep this message
+    });
+
+    if (hasChanges) {
+      this.saveCurrentChatSession(session);
+    }
+  }
+
   // LLM API interaction
   async sendMessage(message: string, fileData?: { name: string, content: string }): Promise<string> {
     const config = this.getLLMConfig();
@@ -248,9 +293,10 @@ export class LLMSettingsService {
     // Add system message if this is the first message from the user in the session
     // The system message content must be a string.
     if (apiMessages.filter(m => m.role === 'user').length === 1 && apiMessages[0].role !== 'system') {
+      const systemMessage = 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.' + this.getKnowledgeBaseContext();
       apiMessages.unshift({ // Corrected from 'messages.unshift' to 'apiMessages.unshift'
         role: 'system',
-        content: 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
+        content: systemMessage
       });
     }
 
@@ -371,10 +417,10 @@ export class LLMSettingsService {
 
     // Add system prompt if this is the first exchange and system prompt isn't already there
     if (apiMessages.filter(m => m.role === 'user').length > 0 && apiMessages[0].role !== 'system') {
+      const systemMessage = 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.' + this.getKnowledgeBaseContext();
       apiMessages.unshift({
         role: 'system',
-        content:
-          'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
+        content: systemMessage
       });
     }
 

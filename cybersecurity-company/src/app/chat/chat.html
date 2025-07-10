@@ -29,6 +29,31 @@
       </div>
     </div>
 
+    <!-- Knowledge Base Section -->
+    <div class="knowledge-base-section" *ngIf="knowledgeBaseFiles.length > 0">
+      <div class="kb-header">
+        <mat-icon>library_books</mat-icon>
+        <h4>Knowledge Base Files</h4>
+        <span class="kb-count">{{ knowledgeBaseFiles.length }} file(s)</span>
+      </div>
+      <div class="kb-files">
+        <mat-chip *ngFor="let file of knowledgeBaseFiles" 
+                  class="kb-file-chip"
+                  (click)="viewKnowledgeBaseFile(file)"
+                  [matTooltip]="'Click to view ' + file.name">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <span class="file-name">{{ file.name }}</span>
+          <span class="file-info">{{ formatFileSize(file.size) }} • {{ formatDate(file.uploadDate) }}</span>
+          <button mat-icon-button 
+                  (click)="deleteKnowledgeBaseFile(file); $event.stopPropagation()"
+                  class="delete-btn"
+                  matTooltip="Delete from knowledge base">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-chip>
+      </div>
+    </div>
+
     <!-- Chat Messages -->
     <div class="chat-messages" #chatMessages>
       <div *ngIf="chatSession && chatSession.messages.length === 0" class="empty-chat">

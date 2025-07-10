@@ -15,6 +15,7 @@ import { RobotInformation } from '../robot-information/robot-information';
 import { RobotService } from '../robot';
 import { SaveSessionDialog, LoadSessionDialog } from '../session-manager/session-manager';
 import { ChatComponent } from '../chat/chat';
+import { KnowledgeBaseComponent } from '../knowledge-base/knowledge-base';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,6 +30,7 @@ import { ChatComponent } from '../chat/chat';
     FormsModule,
     RobotInformation,
     ChatComponent,
+    KnowledgeBaseComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
