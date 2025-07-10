@@ -8,9 +8,18 @@ export interface LLMConfig {
   model: string;
 }
 
+export interface KnowledgeBaseFile {
+  id: string;
+  filename: string;
+  // base64 encoded data prefixed with data:application/pdf;base64,
+  file_data: string;
+  uploaded: Date;
+}
+
 export interface ChatMessageContentFile {
   type: 'file';
   file: {
+    id: string; // unique id to correlate with knowledge base
     filename: string;
     // base64 encoded data, prefixed with data:application/pdf;base64,
     file_data: string;
@@ -36,6 +45,7 @@ export interface ChatSession {
   messages: ChatMessage[];
   created: Date;
   updated: Date;
+  knowledgeBases: KnowledgeBaseFile[]; // newly added to persist uploaded files
 }
 
 @Injectable({
@@ -111,6 +121,12 @@ export class LLMSettingsService {
           ...msg,
           timestamp: new Date(msg.timestamp)
         }));
+        // Ensure knowledgeBases exists and parse its dates
+        if (!session.knowledgeBases) {
+          session.knowledgeBases = [];
+        } else {
+          session.knowledgeBases = session.knowledgeBases.map((kb: any) => ({ ...kb, uploaded: new Date(kb.uploaded) }));
+        }
         return session;
       } catch (e) {
         console.error('Error parsing current chat session:', e);
@@ -125,7 +141,8 @@ export class LLMSettingsService {
       id: this.generateSessionId(),
       messages: [],
       created: new Date(),
-      updated: new Date()
+      updated: new Date(),
+      knowledgeBases: [] // Initialize knowledgeBases
     };
     
     this.saveCurrentChatSession(session);
@@ -162,6 +179,54 @@ export class LLMSettingsService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
+  /** Generate a unique id (used for knowledge base files) */
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  /**
+   * Add a file to the current session knowledgeBase list and return its generated id.
+   */
+  private addKnowledgeBase(fileData: { name: string; content: string }): string {
+    let session = this.getCurrentChatSession();
+    if (!session) {
+      session = this.createNewChatSession();
+    }
+    const id = this.generateId();
+    const kb: KnowledgeBaseFile = {
+      id,
+      filename: fileData.name,
+      file_data: `data:application/pdf;base64,${fileData.content}`,
+      uploaded: new Date(),
+    };
+    if (!session.knowledgeBases) {
+      session.knowledgeBases = [];
+    }
+    session.knowledgeBases.push(kb);
+    this.saveCurrentChatSession(session);
+    return id;
+  }
+
+  /**
+   * Delete a knowledge base entry from the current session and remove any messages that reference it.
+   */
+  deleteKnowledgeBase(id: string): void {
+    const session = this.getCurrentChatSession();
+    if (!session) {
+      return;
+    }
+    // Remove knowledge base entry
+    session.knowledgeBases = (session.knowledgeBases || []).filter(kb => kb.id !== id);
+    // Remove messages that reference the file id
+    session.messages = session.messages.filter(msg => {
+      if (Array.isArray(msg.content)) {
+        return !msg.content.some(p => p.type === 'file' && (p as ChatMessageContentFile).file.id === id);
+      }
+      return true;
+    });
+    this.saveCurrentChatSession(session);
+  }
+
   /**
    * Transform rich (array-based) message content into the plain-text string
    * format currently accepted by the OpenAI / Azure OpenAI chat-completion
@@ -192,12 +257,16 @@ export class LLMSettingsService {
     }
 
     let userMessageContent: ChatMessageContent;
+    let fileId: string | undefined;
 
     if (fileData) {
+      // Persist knowledge base and obtain id
+      fileId = this.addKnowledgeBase(fileData);
       userMessageContent = [
         {
           type: 'file',
           file: {
+            id: fileId,
             filename: fileData.name,
             file_data: `data:application/pdf;base64,${fileData.content}`
           }
@@ -221,6 +290,13 @@ export class LLMSettingsService {
 
     // Get current session for context
     const session = this.getCurrentChatSession();
+    // Inject knowledge base context for the LLM by adding a synthetic message listing all current files.
+    // This ensures the assistant is aware of previously uploaded files throughout the conversation.
+    const knowledgeContextMessage = session && session.knowledgeBases && session.knowledgeBases.length ? ({
+      role: 'system' as const,
+      content: `The user has uploaded the following PDF files as additional context: ${session.knowledgeBases.map(k => k.filename).join(', ')}. You may reference their content when answering. If the user refers to a file, use the uploaded context.`
+    }) : null;
+
     // Prepare messages for API: if content is an array, use it directly, otherwise wrap string content.
     const apiMessages = session ? session.messages.map(msg => {
       let apiContent;
@@ -244,6 +320,10 @@ export class LLMSettingsService {
       };
     }) : [];
 
+    // Prepend knowledge base context message so the assistant is aware of uploaded files
+    if (knowledgeContextMessage) {
+      apiMessages.unshift(knowledgeContextMessage as any);
+    }
 
     // Add system message if this is the first message from the user in the session
     // The system message content must be a string.

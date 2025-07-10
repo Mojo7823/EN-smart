@@ -323,6 +323,42 @@
   text-overflow: ellipsis;
 }
 
+/* Knowledge Base List Styling */
+.knowledge-base-list {
+  margin: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.kb-title {
+  width: 100%;
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.kb-chip {
+  display: flex;
+  align-items: center;
+  background-color: #f1f1f1;
+  border-radius: 16px;
+  padding: 4px 8px;
+  margin: 4px 4px;
+  font-size: 13px;
+}
+
+.kb-chip mat-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.kb-chip button {
+  margin-left: 4px;
+  height: 18px;
+  width: 18px;
+}
+
 
 /* Animations */
 @keyframes fadeIn {

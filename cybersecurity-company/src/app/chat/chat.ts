@@ -47,6 +47,22 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   constructor(private llmSettingsService: LLMSettingsService) {}
 
+  // New helper to access knowledge bases
+  get knowledgeBases() {
+    return this.chatSession?.knowledgeBases || [];
+  }
+
+  deleteKnowledgeBase(kbId: string) {
+    if (!this.chatSession) {
+      return;
+    }
+    if (confirm('Are you sure you want to delete this knowledge base and all related messages?')) {
+      this.llmSettingsService.deleteKnowledgeBase(kbId);
+      // Refresh local session reference
+      this.chatSession = this.llmSettingsService.getCurrentChatSession();
+    }
+  }
+
   ngOnInit() {
     this.isLLMConfigured = this.llmSettingsService.isLLMConfigured();
     if (this.isLLMConfigured) {

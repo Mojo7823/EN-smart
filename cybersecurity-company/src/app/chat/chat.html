@@ -29,6 +29,18 @@
       </div>
     </div>
 
+    <!-- Knowledge Base Attachments -->
+    <div class="knowledge-base-list" *ngIf="knowledgeBases.length">
+      <h4 class="kb-title">Uploaded Knowledge Bases:</h4>
+      <div class="kb-chip" *ngFor="let kb of knowledgeBases">
+        <mat-icon>description</mat-icon>
+        <span>{{ kb.filename }}</span>
+        <button mat-icon-button (click)="deleteKnowledgeBase(kb.id)" matTooltip="Delete knowledge base">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
     <!-- Chat Messages -->
     <div class="chat-messages" #chatMessages>
       <div *ngIf="chatSession && chatSession.messages.length === 0" class="empty-chat">
