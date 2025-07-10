@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import 'tslib';
 
 export interface LLMConfig {
   enabled: boolean;
