@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { KnowledgeBaseService, KnowledgeBaseDocument } from './knowledge-base.service';
 
 export interface LLMConfig {
   enabled: boolean;
@@ -29,6 +30,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: ChatMessageContent; // Can be string or array for multi-modal
   timestamp: Date;
+  documentIds?: string[]; // Track which knowledge base documents are referenced
 }
 
 export interface ChatSession {
@@ -46,7 +48,7 @@ export class LLMSettingsService {
   private chatSessionsKey = 'chatSessions';
   private currentChatKey = 'currentChat';
 
-  constructor() {}
+  constructor(private knowledgeBaseService: KnowledgeBaseService) {}
 
   private isBrowser(): boolean {
     return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -170,21 +172,49 @@ export class LLMSettingsService {
    *  • “file” parts are replaced with an easy-to-read placeholder so the
    *    assistant still gets some context without sending raw file bytes.
    */
-  private flattenContent(content: ChatMessageContent): string {
+  private flattenContent(content: ChatMessageContent, documentIds?: string[]): string {
+    let result = '';
+    
     if (Array.isArray(content)) {
-      return content
-        .map(part =>
-          part.type === 'text'
-            ? part.text
-            : `[File: ${(part as ChatMessageContentFile).file.filename}]`
-        )
-        .join('\n');
+      const textParts = content
+        .filter(part => part.type === 'text')
+        .map(part => (part as ChatMessageContentText).text);
+      
+      result = textParts.join('\n');
+      
+      // Add file placeholders for immediate context
+      const fileParts = content.filter(part => part.type === 'file');
+      if (fileParts.length > 0) {
+        const fileNames = fileParts.map(part => (part as ChatMessageContentFile).file.filename);
+        result += `\n\n[Attached Files: ${fileNames.join(', ')}]`;
+      }
+    } else {
+      result = content as string;
     }
-    return content as string;
+
+    // Include content from referenced knowledge base documents
+    if (documentIds && documentIds.length > 0) {
+      const documentContents: string[] = [];
+      
+      for (const docId of documentIds) {
+        const document = this.knowledgeBaseService.getDocumentById(docId);
+        if (document) {
+          // For now, we'll include the document as a reference since we can't send binary data
+          // In a real implementation, you might extract text content or use a document processing service
+          documentContents.push(`[Knowledge Base Document: ${document.name}]`);
+        }
+      }
+      
+      if (documentContents.length > 0) {
+        result += `\n\nReferenced Documents:\n${documentContents.join('\n')}`;
+      }
+    }
+    
+    return result;
   }
 
   // LLM API interaction
-  async sendMessage(message: string, fileData?: { name: string, content: string }): Promise<string> {
+  async sendMessage(message: string, fileData?: { name: string, content: string }, knowledgeBaseDocIds?: string[]): Promise<string> {
     const config = this.getLLMConfig();
 
     if (!this.isLLMConfigured()) {
@@ -192,8 +222,26 @@ export class LLMSettingsService {
     }
 
     let userMessageContent: ChatMessageContent;
+    let documentIds: string[] = [];
+
+    // Add existing knowledge base documents to context
+    if (knowledgeBaseDocIds && knowledgeBaseDocIds.length > 0) {
+      documentIds.push(...knowledgeBaseDocIds);
+    }
 
     if (fileData) {
+      // Store file in knowledge base
+      const document = this.knowledgeBaseService.addDocument({
+        name: fileData.name,
+        size: fileData.content.length,
+        type: 'application/pdf',
+        uploadDate: new Date().toISOString(),
+        data: fileData.content,
+        description: `Uploaded via chat on ${new Date().toLocaleDateString()}`
+      });
+      
+      documentIds.push(document.id);
+
       userMessageContent = [
         {
           type: 'file',
@@ -215,9 +263,21 @@ export class LLMSettingsService {
     const userMessage: ChatMessage = {
       role: 'user',
       content: userMessageContent, // This will store the rich content
-      timestamp: new Date()
+      timestamp: new Date(),
+      documentIds: documentIds.length > 0 ? documentIds : undefined
     };
     this.addMessageToCurrentSession(userMessage);
+
+    // Track document reference
+    if (documentIds.length > 0) {
+      const session = this.getCurrentChatSession();
+      if (session) {
+        const messageIndex = session.messages.length - 1;
+        for (const docId of documentIds) {
+          this.knowledgeBaseService.addDocumentReference(docId, session.id, messageIndex);
+        }
+      }
+    }
 
     // Get current session for context
     const session = this.getCurrentChatSession();
@@ -248,17 +308,31 @@ export class LLMSettingsService {
     // Add system message if this is the first message from the user in the session
     // The system message content must be a string.
     if (apiMessages.filter(m => m.role === 'user').length === 1 && apiMessages[0].role !== 'system') {
+      let systemContent = 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.';
+      
+      // Add context about available knowledge base documents
+      const allDocs = this.knowledgeBaseService.getAllDocuments();
+      if (allDocs.length > 0) {
+        const docList = allDocs.map(doc => `- ${doc.name} (uploaded ${new Date(doc.uploadDate).toLocaleDateString()})`).join('\n');
+        systemContent += `\n\nAvailable Knowledge Base Documents:\n${docList}\n\nYou can reference these documents throughout the conversation to provide more accurate and specific information.`;
+      }
+      
       apiMessages.unshift({ // Corrected from 'messages.unshift' to 'apiMessages.unshift'
         role: 'system',
-        content: 'You are a helpful assistant for a cybersecurity robot platform. You can help with robot security assessments, classification, and general questions about robotics cybersecurity.'
+        content: systemContent
       });
     }
 
     try {
-      const messagesForAPI = apiMessages.map(m => ({
-        role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
-      }));
+      const messagesForAPI = apiMessages.map((m, index) => {
+        const originalMessage = session?.messages[index];
+        return {
+          role: m.role,
+          content: Array.isArray(m.content) 
+            ? this.flattenContent(m.content as ChatMessageContent, originalMessage?.documentIds) 
+            : m.content
+        };
+      });
 
       const requestBody = {
         model: config.model,
@@ -379,10 +453,15 @@ export class LLMSettingsService {
     }
 
     try {
-      const messagesForAPI = apiMessages.map(m => ({
-        role: m.role,
-        content: Array.isArray(m.content) ? this.flattenContent(m.content as ChatMessageContent) : m.content
-      }));
+      const messagesForAPI = apiMessages.map((m, index) => {
+        const originalMessage = session?.messages[index];
+        return {
+          role: m.role,
+          content: Array.isArray(m.content) 
+            ? this.flattenContent(m.content as ChatMessageContent, originalMessage?.documentIds) 
+            : m.content
+        };
+      });
 
       const requestBody = {
         model: config.model,

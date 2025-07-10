@@ -118,6 +118,15 @@
         class="attachment-button">
         <mat-icon>attachment</mat-icon>
       </button>
+      <button
+        mat-icon-button
+        (click)="toggleKnowledgeBaseSelector()"
+        [disabled]="isLoading"
+        matTooltip="Reference knowledge base documents"
+        [class.active]="showKnowledgeBaseSelector"
+        class="knowledge-base-button">
+        <mat-icon>library_books</mat-icon>
+      </button>
       <button 
         mat-fab 
         color="primary" 
@@ -133,6 +142,52 @@
       <button mat-icon-button (click)="clearSelectedFile()" matTooltip="Remove file">
         <mat-icon>close</mat-icon>
       </button>
+    </div>
+
+    <!-- Knowledge Base Document Selector -->
+    <div *ngIf="showKnowledgeBaseSelector" class="knowledge-base-selector">
+      <div class="selector-header">
+        <h4>Select Knowledge Base Documents</h4>
+        <button mat-icon-button (click)="toggleKnowledgeBaseSelector()" matTooltip="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div *ngIf="knowledgeBaseDocuments.length === 0" class="no-documents-message">
+        <mat-icon>info</mat-icon>
+        <p>No documents in knowledge base. Upload documents via the Knowledge Base Manager.</p>
+      </div>
+
+      <div *ngIf="knowledgeBaseDocuments.length > 0" class="documents-list">
+        <div *ngFor="let document of knowledgeBaseDocuments" 
+             class="document-item"
+             [class.selected]="isKnowledgeBaseDocumentSelected(document)"
+             (click)="toggleKnowledgeBaseDocument(document)">
+          <mat-icon class="document-icon">picture_as_pdf</mat-icon>
+          <div class="document-info">
+            <span class="document-name">{{ document.name }}</span>
+            <span class="document-meta">{{ formatFileSize(document.size) }} • {{ formatDate(document.uploadDate) }}</span>
+          </div>
+          <mat-icon *ngIf="isKnowledgeBaseDocumentSelected(document)" class="selected-icon">check_circle</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Knowledge Base Documents Chips -->
+    <div *ngIf="selectedKnowledgeBaseDocuments.length > 0" class="selected-kb-documents">
+      <div class="kb-documents-header">
+        <span>Referenced Documents:</span>
+        <button mat-button (click)="clearSelectedKnowledgeBaseDocuments()" class="clear-all-btn">Clear All</button>
+      </div>
+      <div class="kb-document-chips">
+        <div *ngFor="let document of selectedKnowledgeBaseDocuments" class="kb-document-chip">
+          <mat-icon>library_books</mat-icon>
+          <span>{{ document.name }}</span>
+          <button mat-icon-button (click)="removeKnowledgeBaseDocument(document)" matTooltip="Remove document">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

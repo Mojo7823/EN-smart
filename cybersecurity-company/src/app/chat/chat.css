@@ -386,3 +386,217 @@
     justify-content: center;
   }
 }
+
+/* Knowledge Base UI Styles */
+.knowledge-base-button {
+  margin-bottom: 4px;
+}
+
+.knowledge-base-button.active {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.knowledge-base-selector {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 8px 0;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+  border-radius: 8px 8px 0 0;
+}
+
+.selector-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.no-documents-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #666;
+  text-align: center;
+}
+
+.no-documents-message mat-icon {
+  margin-right: 8px;
+  color: #999;
+}
+
+.documents-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  background: #fff;
+  border: 1px solid transparent;
+}
+
+.document-item:hover {
+  background: #f0f8ff;
+  border-color: #e3f2fd;
+}
+
+.document-item.selected {
+  background: #e3f2fd;
+  border-color: #1976d2;
+}
+
+.document-icon {
+  color: #d32f2f;
+  margin-right: 12px;
+}
+
+.document-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.document-name {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.document-meta {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.selected-icon {
+  color: #1976d2;
+  margin-left: 8px;
+}
+
+.selected-kb-documents {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding: 12px;
+}
+
+.kb-documents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.kb-documents-header span {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.clear-all-btn {
+  font-size: 0.75rem;
+  min-width: auto;
+  padding: 4px 8px;
+  height: auto;
+  line-height: 1.2;
+}
+
+.kb-document-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kb-document-chip {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+  border-radius: 16px;
+  font-size: 0.8em;
+  max-width: 200px;
+}
+
+.kb-document-chip mat-icon {
+  margin-right: 6px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.kb-document-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.kb-document-chip button {
+  margin-left: 4px;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+}
+
+.kb-document-chip button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+/* Responsive adjustments for knowledge base UI */
+@media (max-width: 768px) {
+  .knowledge-base-selector {
+    max-height: 250px;
+  }
+  
+  .kb-document-chips {
+    gap: 4px;
+  }
+  
+  .kb-document-chip {
+    max-width: 150px;
+    font-size: 0.75em;
+  }
+  
+  .document-item {
+    padding: 10px;
+  }
+  
+  .document-name {
+    font-size: 0.9rem;
+  }
+  
+  .document-meta {
+    font-size: 0.7rem;
+  }
+}

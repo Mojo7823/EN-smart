@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { MarkdownPipe } from '../shared/markdown.pipe';
 import { LLMSettingsService, ChatMessage, ChatSession } from '../llm-settings.service';
+import { KnowledgeBaseService, KnowledgeBaseDocument } from '../knowledge-base.service';
 
 @Component({
   selector: 'app-chat',
@@ -44,14 +45,21 @@ export class ChatComponent implements OnInit, OnDestroy {
   isLLMConfigured: boolean = false;
   errorMessage: string = '';
   selectedFile: File | null = null;
+  knowledgeBaseDocuments: KnowledgeBaseDocument[] = [];
+  selectedKnowledgeBaseDocuments: KnowledgeBaseDocument[] = [];
+  showKnowledgeBaseSelector = false;
 
-  constructor(private llmSettingsService: LLMSettingsService) {}
+  constructor(
+    private llmSettingsService: LLMSettingsService,
+    private knowledgeBaseService: KnowledgeBaseService
+  ) {}
 
   ngOnInit() {
     this.isLLMConfigured = this.llmSettingsService.isLLMConfigured();
     if (this.isLLMConfigured) {
       this.loadChatSession();
     }
+    this.loadKnowledgeBaseDocuments();
   }
 
   ngOnDestroy() {
@@ -69,8 +77,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     setTimeout(() => this.scrollToBottom(), 100);
   }
 
+  private loadKnowledgeBaseDocuments() {
+    this.knowledgeBaseDocuments = this.knowledgeBaseService.getAllDocuments();
+  }
+
   async sendMessage() {
-    if ((!this.currentMessage.trim() && !this.selectedFile) || this.isLoading || !this.isLLMConfigured) {
+    if ((!this.currentMessage.trim() && !this.selectedFile && this.selectedKnowledgeBaseDocuments.length === 0) || this.isLoading || !this.isLLMConfigured) {
       return;
     }
 
@@ -80,6 +92,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.currentMessage = '';
     const file = this.selectedFile;
     this.selectedFile = null; // Clear selected file
+    const selectedKbDocs = [...this.selectedKnowledgeBaseDocuments];
+    this.selectedKnowledgeBaseDocuments = []; // Clear selected knowledge base documents
 
     // Convert file to base64 if present
     let fileData: { name: string, content: string } | undefined;
@@ -96,7 +110,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     // Begin sending the message but don't await immediately
-    const sendPromise = this.llmSettingsService.sendMessage(message, fileData);
+    const selectedDocIds = selectedKbDocs.map(doc => doc.id);
+    const sendPromise = this.llmSettingsService.sendMessage(message, fileData, selectedDocIds.length > 0 ? selectedDocIds : undefined);
 
     // Immediately refresh chat session so the user's message shows
     // (The user message part of sendMessage in service already handles this)
@@ -238,6 +253,34 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleKnowledgeBaseSelector() {
+    this.showKnowledgeBaseSelector = !this.showKnowledgeBaseSelector;
+    if (this.showKnowledgeBaseSelector) {
+      this.loadKnowledgeBaseDocuments();
+    }
+  }
+
+  toggleKnowledgeBaseDocument(document: KnowledgeBaseDocument) {
+    const index = this.selectedKnowledgeBaseDocuments.findIndex(doc => doc.id === document.id);
+    if (index === -1) {
+      this.selectedKnowledgeBaseDocuments.push(document);
+    } else {
+      this.selectedKnowledgeBaseDocuments.splice(index, 1);
+    }
+  }
+
+  isKnowledgeBaseDocumentSelected(document: KnowledgeBaseDocument): boolean {
+    return this.selectedKnowledgeBaseDocuments.some(doc => doc.id === document.id);
+  }
+
+  removeKnowledgeBaseDocument(document: KnowledgeBaseDocument) {
+    this.selectedKnowledgeBaseDocuments = this.selectedKnowledgeBaseDocuments.filter(doc => doc.id !== document.id);
+  }
+
+  clearSelectedKnowledgeBaseDocuments() {
+    this.selectedKnowledgeBaseDocuments = [];
+  }
+
   // Helper methods for rendering complex messages in the template
   isUserMessageWithFile(message: ChatMessage): boolean {
     if (message.role === 'user' && Array.isArray(message.content)) {
@@ -260,5 +303,18 @@ export class ChatComponent implements OnInit, OnDestroy {
       return textPart ? (textPart as any).text : '';
     }
     return message.content as string; // Fallback for simple string content (e.g., assistant messages)
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   }
 }
